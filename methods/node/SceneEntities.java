@@ -171,56 +171,51 @@ public class SceneEntities {
 		if (groundArray == null) {
 			return objects;
 		}
+		final int plane = client.getPlane() * multipliers.GLOBAL_PLANE;
+		final RSGround rsGround = groundArray[plane][x][y];
 
-		try {
-			final int plane = client.getPlane() * multipliers.GLOBAL_PLANE;
-			final RSGround rsGround = groundArray[plane][x][y];
+		if (rsGround != null) {
+			Object obj;
 
-			if (rsGround != null) {
-				Object obj;
-
-				if ((mask & TYPE_INTERACTIVE) != 0) {
-					for (RSAnimableNode node = (RSAnimableNode) rsGround.getRSAnimableList(); node != null; node = node.getNext()) {
-						obj = node.getRSAnimable();
-						if (obj != null) {
-							objects.add(new SceneObject((RSObject) obj, TYPE_INTERACTIVE, plane));
-						}
-					}
-				}
-
-
-				if ((mask & TYPE_FLOOR_DECORATION) != 0) {
-					obj = rsGround.getFloorDecoration();
-					if (obj != null) {
-						objects.add(new SceneObject((RSObject) obj, TYPE_FLOOR_DECORATION, plane));
-					}
-				}
-
-				if ((mask & TYPE_BOUNDARY) != 0) {
-					obj = rsGround.getBoundary1();
-					if (obj != null) {
-						objects.add(new SceneObject((RSObject) obj, TYPE_BOUNDARY, plane));
-					}
-
-					obj = rsGround.getBoundary2();
-					if (obj != null) {
-						objects.add(new SceneObject((RSObject) obj, TYPE_BOUNDARY, plane));
-					}
-				}
-
-				if ((mask & TYPE_WALL_DECORATION) != 0) {
-					obj = rsGround.getWallDecoration1();
-					if (obj != null) {
-						objects.add(new SceneObject((RSObject) obj, TYPE_WALL_DECORATION, plane));
-					}
-
-					obj = rsGround.getWallDecoration2();
-					if (obj != null) {
-						objects.add(new SceneObject((RSObject) obj, TYPE_WALL_DECORATION, plane));
+			if ((mask & TYPE_INTERACTIVE) != 0) {
+				for (RSAnimableNode node = (RSAnimableNode) rsGround.getRSAnimableList(); node != null; node = node.getNext()) {
+					obj = node.getRSAnimable();
+					if (obj != null && obj instanceof RSObject) {
+						objects.add(new SceneObject((RSObject) obj, TYPE_INTERACTIVE, plane));
 					}
 				}
 			}
-		} catch (final Exception ignored) {
+
+			if ((mask & TYPE_FLOOR_DECORATION) != 0) {
+				obj = rsGround.getFloorDecoration();
+				if (obj != null && obj instanceof RSObject) {
+					objects.add(new SceneObject((RSObject) obj, TYPE_FLOOR_DECORATION, plane));
+				}
+			}
+
+			if ((mask & TYPE_BOUNDARY) != 0) {
+				obj = rsGround.getBoundary1();
+				if (obj != null && obj instanceof RSObject) {
+					objects.add(new SceneObject((RSObject) obj, TYPE_BOUNDARY, plane));
+				}
+
+				obj = rsGround.getBoundary2();
+				if (obj != null && obj instanceof RSObject) {
+					objects.add(new SceneObject((RSObject) obj, TYPE_BOUNDARY, plane));
+				}
+			}
+
+			if ((mask & TYPE_WALL_DECORATION) != 0) {
+				obj = rsGround.getWallDecoration1();
+				if (obj != null && obj instanceof RSObject) {
+					objects.add(new SceneObject((RSObject) obj, TYPE_WALL_DECORATION, plane));
+				}
+
+				obj = rsGround.getWallDecoration2();
+				if (obj != null && obj instanceof RSObject) {
+					objects.add(new SceneObject((RSObject) obj, TYPE_WALL_DECORATION, plane));
+				}
+			}
 		}
 		return objects;
 	}
