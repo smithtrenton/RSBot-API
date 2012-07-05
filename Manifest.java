@@ -15,6 +15,8 @@ public @interface Manifest {
 
 	String website() default "";
 
+	int topic() default 0;
+
 	boolean vip() default false;
 
 	boolean hidden() default false;
