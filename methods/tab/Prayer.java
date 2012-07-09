@@ -151,7 +151,7 @@ public class Prayer {
 	}
 
 	public static boolean isCursesOn() {
-		return Settings.get(1584) == 0x17;
+		return Settings.get(1584) % 2 != 0;
 	}
 
 	public static boolean isQuickOn() {
