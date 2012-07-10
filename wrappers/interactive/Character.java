@@ -164,6 +164,20 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 
 		return -1;
 	}
+	
+	public int getHpRatio() {
+		final RSCharacter c = get();
+		if (c != null) {
+			final CombatStatusData combatInfoData = getCombatInfoData();
+			if (combatInfoData == null) {
+				return 255;
+			}
+
+			return combatInfoData.getHPRatio() * multipliers.CHARACTER_HPRATIO;
+		}
+
+		return -1;
+	}
 
 	public boolean isInCombat() {
 		final RSCharacter c = get();
