@@ -24,7 +24,7 @@ public class Lobby {
 	public static final int LOGIN_DEFAULT_TIMEOUT = 30000;
 
 	public static final int WIDGET_MAIN_LOBBY = 906;
-	public static final int WIDGET_BUTTON_PLAY_GAME = 195;
+	public static final int WIDGET_BUTTON_PLAY_GAME = 197;
 	public static final int WIDGET_BUTTON_LOGOUT = 220;
 	public static final int WIDGET_LABEL_CURRENT_WORLD = 11;
 	public static final int WIDGET_WORLDS_TABLE = 62;
