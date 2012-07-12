@@ -25,7 +25,7 @@ public class Lobby {
 
 	public static final int WIDGET_MAIN_LOBBY = 906;
 	public static final int WIDGET_BUTTON_PLAY_GAME = 197;
-	public static final int WIDGET_BUTTON_LOGOUT = 220;
+	public static final int WIDGET_BUTTON_LOGOUT = 221;
 	public static final int WIDGET_LABEL_CURRENT_WORLD = 11;
 	public static final int WIDGET_WORLDS_TABLE = 62;
 	public static final int WIDGET_WORLDS_TABLE_SCROLLBAR = 86;
@@ -42,8 +42,8 @@ public class Lobby {
 	 * Representation of the lobby tabs.
 	 */
 	public static enum Tab {
-		PLAYER_INFO(228, 907), WORLD_SELECT(27, 910), FRIENDS(26, 909),
-		FRIENDS_CHAT(277, 589), CLAN_CHAT(25, 912), OPTIONS(24, 911);
+		PLAYER_INFO(230, 907), WORLD_SELECT(28, 910), FRIENDS(27, 909),
+		FRIENDS_CHAT(280, 589), CLAN_CHAT(26, 912), OPTIONS(25, 911);
 
 		private final int widgetTabIndex;
 		private final int widgetPanelIndex;
@@ -99,14 +99,14 @@ public class Lobby {
 	 * Representation of the lobby dialogs.
 	 */
 	public static enum Dialog {
-		TRANSFER_COUNTDOWN(254, -1, 251, "^You have only just left another world."),
-		ACCOUNT_IN_USE(259, -1, 251, "^Your account has not logged out from its last session."),
-		LOGIN_LIMIT_EXCEEDED(259, -1, 251, "^Login limit exceeded: too many connections from your address."),
-		MEMBERS_ONLY_WORLD(259, -1, 251, "^You need a member's account to log in to this world."),
-		INSUFFICIENT_SKILL_TOTAL(261, -1, 251, "^You must have a total skill level of"),
+		TRANSFER_COUNTDOWN(255, -1, 252, "^You have only just left another world."),
+		ACCOUNT_IN_USE(260, -1, 252, "^Your account has not logged out from its last session."),
+		LOGIN_LIMIT_EXCEEDED(260, -1, 252, "^Login limit exceeded: too many connections from your address."),
+		MEMBERS_ONLY_WORLD(260, -1, 252, "^You need a member's account to log in to this world."),
+		INSUFFICIENT_SKILL_TOTAL(260, -1, 252, "^You must have a total skill level of"),
 		//ACCOUNT_BANNED(-1, -1, -1, null), //TODO
-		WILDERNESS_WARNING(117, 119, 112, "^Warning: This is a High-risk Wilderness world."),
-		VALIDATE_EMAIL(380, 380, 351, "^Validate your email now for increased account security");
+		WILDERNESS_WARNING(118, 120, 113, "^Warning: This is a High-risk Wilderness world."),
+		VALIDATE_EMAIL(379, 379, 352, "^Validate your email now for increased account security");
 
 		private final int backButtonIndex;
 		private final int continueButtonIndex;
