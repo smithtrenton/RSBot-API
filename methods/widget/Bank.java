@@ -170,6 +170,9 @@ public class Bank {
 	 * @return <tt>true</tt> if the bank was opened; otherwise <tt>false</tt>.
 	 */
 	public static boolean open() {
+		if(isOpen()) {
+			return true;
+		}
 		final Entity bank = getNearest();
 		if (bank == null) {
 			return false;
