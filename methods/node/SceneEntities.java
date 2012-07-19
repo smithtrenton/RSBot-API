@@ -50,8 +50,11 @@ public class SceneEntities {
 	 * @return An array of all of the loaded Locations positioned on the given tile.
 	 */
 	public static SceneObject[] getLoaded(final Tile tile) {
-		final Set<SceneObject> locations = getLocalAt(tile.getX() - Game.getBaseX(), tile.getY() - Game.getBaseY(), -1);
-		return locations.toArray(new SceneObject[locations.size()]);
+		if (tile.validate()) {
+			final Set<SceneObject> locations = getLocalAt(tile.getX() - Game.getBaseX(), tile.getY() - Game.getBaseY(), -1);
+			return locations.toArray(new SceneObject[locations.size()]);
+		}
+		return new SceneObject[0];
 	}
 
 	public static SceneObject[] getLoaded(final int... ids) {
@@ -143,9 +146,11 @@ public class SceneEntities {
 			x -= Game.getBaseX();
 			y -= Game.getBaseY();
 		}
-		final Set<SceneObject> objects = getLocalAt(x, y, mask);
-		if (objects.size() > 0) {
-			return objects.toArray(new SceneObject[objects.size()])[0];
+		if (x >= 0 && y >= 0 && x < 104 && y < 104) {
+			final Set<SceneObject> objects = getLocalAt(x, y, mask);
+			if (objects.size() > 0) {
+				return objects.toArray(new SceneObject[objects.size()])[0];
+			}
 		}
 		return null;
 	}

@@ -89,7 +89,7 @@ public class Tile implements Entity, Locatable, Identifiable {
 	public boolean validate() {
 		final int x = this.x - Game.getBaseX();
 		final int y = this.y - Game.getBaseY();
-		return x > 0 && x < 104 && y > 0 && y < 104;
+		return x >= 0 && x < 104 && y >= 0 && y < 104;
 	}
 
 	public Point getMapPoint() {
