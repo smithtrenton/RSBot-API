@@ -175,7 +175,6 @@ public class SceneObject implements Entity, Locatable, Identifiable {
 	}
 
 	public void draw(final Graphics render) {
-		//TODO color
 		final CapturedModel model = getModel();
 		if (model != null) {
 			model.draw(render);
