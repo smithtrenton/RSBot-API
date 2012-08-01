@@ -18,6 +18,8 @@ import org.powerbot.concurrent.strategy.StrategyDaemon;
 import org.powerbot.concurrent.strategy.StrategyGroup;
 import org.powerbot.event.EventManager;
 import org.powerbot.game.bot.Context;
+import org.powerbot.service.scripts.ScriptDefinition;
+import org.powerbot.util.Tracker;
 
 /**
  * @author Timer
@@ -34,6 +36,8 @@ public abstract class ActiveScript implements EventListener, Processor {
 	private Context context;
 	private boolean silent;
 
+	private ScriptDefinition def;
+
 	public ActiveScript() {
 		eventManager = null;
 		container = null;
@@ -43,11 +47,27 @@ public abstract class ActiveScript implements EventListener, Processor {
 		silent = false;
 	}
 
+	public void setDefinition(final ScriptDefinition def) {
+		if (this.def != null) {
+			return;
+		}
+		this.def = def;
+	}
+
+	private void track(final String action) {
+		if (def == null || def.local || def.getID() == null || def.getID().isEmpty() || def.getName() == null) {
+			return;
+		}
+		final String page = String.format("scripts/%s/%s", def.getID(), action);
+		Tracker.getInstance().trackPage(page, def.getName());
+	}
+
 	public final void init(final Context context) {
 		this.context = context;
 		eventManager = context.getEventManager();
 		container = new TaskProcessor(context.getThreadGroup());
 		executor = new StrategyDaemon(container, context.getContainer());
+		track("");
 	}
 
 	protected final void provide(final Strategy strategy) {
@@ -144,6 +164,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 			eventManager.accept(eventListener);
 		}
 		executor.listen();
+		track("resume");
 	}
 
 	public final void pause() {
@@ -161,6 +182,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 				eventManager.remove(eventListener);
 			}
 		}
+		track("pause");
 	}
 
 	public final void setSilent(final boolean silent) {
@@ -198,6 +220,8 @@ public abstract class ActiveScript implements EventListener, Processor {
 				name.startsWith("ThreadPool-")) {
 			context.updateControls();
 		}
+
+		track("stop");
 	}
 
 	public void onStop() {
@@ -205,6 +229,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 
 	public final void kill() {
 		container.stop();
+		track("kill");
 	}
 
 	protected final DaemonState getState() {
