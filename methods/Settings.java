@@ -8,8 +8,12 @@ import org.powerbot.game.bot.Context;
  * @author Timer
  */
 public class Settings {
-	public static final int BOOLEAN_RUN_ENABLED = 173;
-	public static final int VALUE_RANDOMEVENT_DRILLDEMON_MAT = 531;
+	public static final int SETTING_COMBAT_STYLE = 43;
+	public static final int SETTING_AUTO_RETALIATE = 172;
+	public static final int SETTING_RUN_ENABLED = 173;
+	public static final int SETTING_SPECIAL_ENERGY = 300;
+	public static final int SETTING_SPECIAL_ATTACK = 301;
+	public static final int SETTING_RANDOMEVENT_DRILLDEMON_MAT = 531;
 
 	/**
 	 * @return The <code>int[]</code> of all the game's settings in their respective positioning.
