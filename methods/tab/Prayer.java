@@ -12,9 +12,7 @@ import org.powerbot.game.api.util.Time;
  * @author ArcaneSanity
  */
 public class Prayer {
-
 	public interface PrayerBook {
-
 		public int getId();
 
 		public int getBook();
@@ -24,7 +22,6 @@ public class Prayer {
 		public boolean isActive();
 
 		public boolean isSetQuick();
-
 	}
 
 	public enum CURSES implements PrayerBook {
@@ -76,7 +73,6 @@ public class Prayer {
 		public boolean isSetQuick() {
 			return Settings.get(1587, this.shift, 0x1) == 1;
 		}
-
 	}
 
 	public enum NORMAL implements PrayerBook {
@@ -138,7 +134,6 @@ public class Prayer {
 		public boolean isSetQuick() {
 			return Settings.get(1397, this.shift, 0x1) == 1;
 		}
-
 	}
 
 	public static final int WIDGET_PRAYER = 271;
@@ -185,13 +180,10 @@ public class Prayer {
 	}
 
 	/**
-	 * @param active <tt>true</tt> to turn quick prayers/curses on, <tt>false</tt> to turn quick prayers/curses off.
+	 * @param activate <tt>true</tt> to turn quick prayers/curses on, <tt>false</tt> to turn quick prayers/curses off.
 	 */
 	public static boolean toggleQuick(final boolean activate) {
-		if (isQuickOn() == activate) {
-			return true;
-		}
-		return Widgets.get(WIDGET_PRAYER_ORB, 2).interact("Turn");
+		return isQuickOn() == activate || Widgets.get(WIDGET_PRAYER_ORB, 2).interact("Turn");
 	}
 
 	/**

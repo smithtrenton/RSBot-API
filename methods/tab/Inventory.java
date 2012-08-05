@@ -224,6 +224,42 @@ public class Inventory {
 		return -1;
 	}
 
+	/**
+	 * Returns the index of the first occurrence of an item in the inventory
+	 * matching with the provided id.
+	 *
+	 * @param id the item id
+	 * @return the index; otherwise <tt>-1</tt>.
+	 */
+	public static int indexOf(final int id) {
+		final Item[] items = getItems();
+		for (int i = 0; i < items.length; i++) {
+			if (id == items[i].getId()) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Returns the index of the first occurrence of an item in the inventory
+	 * matching with the provided name. Case-insensitive.
+	 *
+	 * @param name the name of the item
+	 * @return the index; otherwise <tt>-1</tt>.
+	 */
+	public static int indexOf(final String name) {
+		if (name != null && !name.isEmpty()) {
+			final Item[] items = getItems();
+			for (int i = 0; i < items.length; i++) {
+				if (items[i].getName().equalsIgnoreCase(name)) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
 	public static WidgetChild getWidget(final boolean cached) {
 		for (final int widget : ALT_WIDGETS) {
 			WidgetChild inventory = Widgets.get(widget, 0);
