@@ -29,18 +29,18 @@ public class Equipment {
 	public static final int AMMO = 38;
 
 	public enum Slot {
-		HELMET(8, 0, 0),
-		CAPE(11, 1, 1),
-		NECK(14, 2, 2),
-		WEAPON(17, 3, 3),
-		BODY(20, 4, 4),
-		SHIELD(23, 5, 5),
-		LEGS(26, 7, 7),
-		HANDS(29, 9, 9),
-		FEET(32, 10, 10),
-		RING(35, 12, -1),
-		AMMO(38, 13, -1),
-		AURA(50, 14, -1);
+		HELMET(6, 0, 0),
+		CAPE(9, 1, 1),
+		NECK(12, 2, 2),
+		WEAPON(15, 3, 3),
+		BODY(18, 4, 4),
+		SHIELD(21, 5, 5),
+		LEGS(24, 7, 7),
+		HANDS(27, 9, 9),
+		FEET(30, 10, 10),
+		RING(33, 12, -1),
+		AMMO(36, 13, -1),
+		AURA(46, 14, 14);
 
 		private final int componentIndex;
 		private final int bankComponentIndex;
@@ -233,9 +233,9 @@ public class Equipment {
 			final WidgetChild[] components = widget.getChildren();
 			if (components.length > 0) {
 				final Item[] items = new Item[NUM_SLOTS];
-				for (int i = 0; i < items.length; i++) {
-					items[i] = new Item(components[i * 3 + 8]);
-				}
+				final Slot[] slots = Slot.values();
+				for (int i = 0; i < NUM_SLOTS; i++)
+					items[i] = new Item(components[slots[i].getComponentIndex()]);
 				return items;
 			}
 		}
@@ -365,9 +365,9 @@ public class Equipment {
 			if (equip.length > 0) {
 				if (!isBank) {
 					final Item[] items = new Item[NUM_SLOTS];
-					for (int i = 0; i < items.length; i++) {
-						items[i] = new Item(equip[i * 3 + 8]);
-					}
+					final Slot[] slots = Slot.values();
+					for (int i = 0; i < NUM_SLOTS; i++)
+						items[i] = new Item(equip[slots[i].getComponentIndex()]);
 					return items;
 				} else {
 					final Item[] items = new Item[equip.length];
@@ -410,9 +410,10 @@ public class Equipment {
 				}
 			}
 			final WidgetChild item_child = item.getWidgetChild();
-			if (!item_child.interact("Equip")) {
-				if (!item_child.interact("Wear")) {
-					item_child.interact("Wield");
+			for (String action : item_child.getActions()) {
+				if (action == null) continue;
+				if (action.contains("Equip") || action.contains("Wear") || action.contains("Wield")) {
+					item_child.interact(action);
 				}
 			}
 			for (int i = 0; i < 100; i++) {
