@@ -64,10 +64,10 @@ public class Equipment {
 		/**
 		 * Gets the component index of the slot
 		 *
-		 * @param bank bank <tt>true</tt> to get component index of bank equipment component otherwise <tt>false</tt> for regular index
+		 * @param bank <tt>true</tt> to get component index of bank equipment component otherwise <tt>false</tt> for regular index
 		 * @return the index of the slot based on the bank parameter
 		 */
-		public int getIndex(boolean bank) {
+		public int getIndex(final boolean bank) {
 			return (bank) ? getBankComponentIndex() : getComponentIndex();
 		}
 
