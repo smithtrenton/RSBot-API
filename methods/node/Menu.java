@@ -117,7 +117,7 @@ public class Menu {
 		return clickIndex(idx);
 	}
 
-	private static boolean clickIndex(final int i) {
+	public static boolean clickIndex(final int i) {
 		if (!isOpen()) {
 			return false;
 		}
