@@ -164,7 +164,7 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 
 		return -1;
 	}
-	
+
 	public int getHpRatio() {
 		final RSCharacter c = get();
 		if (c != null) {
