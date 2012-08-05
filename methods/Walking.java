@@ -74,7 +74,7 @@ public class Walking {
 	}
 
 	public static boolean isRunEnabled() {
-		return Settings.get(Settings.BOOLEAN_RUN_ENABLED) == 1;
+		return Settings.get(Settings.SETTING_RUN_ENABLED) == 1;
 	}
 
 	public static int getEnergy() {
