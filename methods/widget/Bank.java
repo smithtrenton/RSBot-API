@@ -361,13 +361,17 @@ public class Bank {
 	public static Item[] getItems(final boolean currentTabOnly) {
 		return getItems(currentTabOnly, Inventory.ALL_FILTER);
 	}
+	
+	public static Item[] getItems(final Filter<Item> itemFilter) {
+		return getItems(false, itemFilter);
+	} 
 
 	public static Item[] getItems(final boolean currentTabOnly, final Filter<Item> itemFilter) {
 		if (!isOpen()) {
 			return new Item[0];
 		}
 		final WidgetChild[] slots = Widgets.get(WIDGET_BANK, WIDGET_SLOTS_CONTAINER).getChildren();
-		final ArrayList<Item> items = new ArrayList<Item>();
+		final ArrayList<Item> items = new ArrayList<Item>(slots.length);
 		for (final WidgetChild slot : slots) {
 			if (slot != null && slot.getChildId() != -1 && (!currentTabOnly || slot.getRelativeY() != 0)) {
 				final Item item = new Item(slot);
