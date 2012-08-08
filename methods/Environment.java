@@ -18,6 +18,10 @@ public class Environment {
 		return Context.captureScreen();
 	}
 
+	public static BufferedImage getScreenBuffer() {
+		return Context.getScreenBuffer();
+	}
+
 	public static void saveScreenCapture() {
 		Context.saveScreenCapture();
 	}
