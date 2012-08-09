@@ -68,7 +68,7 @@ public class Equipment {
 		 * @return the index of the slot based on the bank parameter
 		 */
 		public int getIndex(final boolean bank) {
-			return (bank) ? getBankComponentIndex() : getComponentIndex();
+			return bank ? getBankComponentIndex() : getComponentIndex();
 		}
 
 		/**
