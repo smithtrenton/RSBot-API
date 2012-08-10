@@ -77,7 +77,7 @@ public class Inventory {
 					if (inventoryChildren[i].getChildId() != -1) {
 						final Item inventoryItem = new Item(inventoryChildren[i]);
 						if (itemFilter.accept(inventoryItem)) {
-							items.add(new Item(inventoryChildren[i]));
+							items.add(inventoryItem);
 						}
 					}
 				}
