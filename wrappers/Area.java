@@ -152,10 +152,10 @@ public class Area {
 	public Tile getNearest(final Locatable base) {
 		final Tile[] tiles = getTileArray();
 		Tile tile = null;
-		long dist = Long.MAX_VALUE, temp;
+		double dist = Double.MAX_VALUE, temp;
 		for (final Tile t : tiles) {
-			temp = (long) Calculations.distance(base, t);
-			if (t == null || temp < dist) {
+			temp = Calculations.distance(base, t);
+			if (tile == null || temp < dist) {
 				dist = temp;
 				tile = t;
 			}
