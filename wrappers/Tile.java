@@ -214,7 +214,7 @@ public class Tile implements Entity, Locatable, Identifiable {
 
 	@Override
 	public String toString() {
-		return new StringBuilder("(").append(x).append(", ").append(y).append(')').toString();
+		return "(" + x + ", " + y + ", " + plane + ')';
 	}
 
 	@Override
