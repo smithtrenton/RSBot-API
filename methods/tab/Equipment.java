@@ -12,21 +12,10 @@ import org.powerbot.game.api.wrappers.widget.WidgetChild;
 public class Equipment {
 	public static final int WIDGET = 387;
 	public static final int WIDGET_BANK = 667;
-	public static final int COMPONENT_EQUIP_INVENTORY = 7;
+	public static final int COMPONENT_EQUIP_INVENTORY = 9;
 
 	public static final int NUM_APPEARANCE_SLOTS = 9;
 	public static final int NUM_SLOTS = 12;
-	public static final int HELMET = 8;
-	public static final int CAPE = 11;
-	public static final int NECK = 14;
-	public static final int WEAPON = 17;
-	public static final int BODY = 20;
-	public static final int SHIELD = 23;
-	public static final int LEGS = 26;
-	public static final int HANDS = 29;
-	public static final int FEET = 32;
-	public static final int RING = 35;
-	public static final int AMMO = 38;
 
 	public enum Slot {
 		HELMET(6, 0, 0),
@@ -234,8 +223,9 @@ public class Equipment {
 			if (components.length > 0) {
 				final Item[] items = new Item[NUM_SLOTS];
 				final Slot[] slots = Slot.values();
-				for (int i = 0; i < NUM_SLOTS; i++)
+				for (int i = 0; i < NUM_SLOTS; i++) {
 					items[i] = new Item(components[slots[i].getComponentIndex()]);
+				}
 				return items;
 			}
 		}
@@ -366,8 +356,9 @@ public class Equipment {
 				if (!isBank) {
 					final Item[] items = new Item[NUM_SLOTS];
 					final Slot[] slots = Slot.values();
-					for (int i = 0; i < NUM_SLOTS; i++)
+					for (int i = 0; i < NUM_SLOTS; i++) {
 						items[i] = new Item(equip[slots[i].getComponentIndex()]);
+					}
 					return items;
 				} else {
 					final Item[] items = new Item[equip.length];
@@ -411,7 +402,9 @@ public class Equipment {
 			}
 			final WidgetChild item_child = item.getWidgetChild();
 			for (String action : item_child.getActions()) {
-				if (action == null) continue;
+				if (action == null) {
+					continue;
+				}
 				if (action.contains("Equip") || action.contains("Wear") || action.contains("Wield")) {
 					item_child.interact(action);
 				}
