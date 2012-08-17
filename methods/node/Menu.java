@@ -170,7 +170,7 @@ public class Menu {
 		return getIndex(action, option) != -1;
 	}
 
-	private static boolean clickMain(final String[] items, final int i) {
+	public static boolean clickMain(final String[] items, final int i) {
 		final Point menu = getLocation();
 		final int xOff = Random.nextInt(4, items[i].length() * 4);
 		final int yOff = 21 + 16 * i + Random.nextInt(3, 12);
@@ -182,7 +182,7 @@ public class Menu {
 		return false;
 	}
 
-	private static boolean clickSub(final String[] items, final int mIdx, final int sIdx) {
+	public static boolean clickSub(final String[] items, final int mIdx, final int sIdx) {
 		final Point menuLoc = getLocation();
 		int x = Random.nextInt(4, items[mIdx].length() * 4);
 		int y = 21 + 16 * mIdx + Random.nextInt(3, 12);
@@ -220,7 +220,7 @@ public class Menu {
 		return getMenuItemPart(false);
 	}
 
-	private static int getIndex(String action) {
+	public static int getIndex(String action) {
 		action = action.toLowerCase();
 		final String[] items = getActions();
 		for (int i = 0; i < items.length; i++) {
@@ -231,7 +231,7 @@ public class Menu {
 		return -1;
 	}
 
-	private static int getIndex(String action, String option) {
+	public static int getIndex(String action, String option) {
 		if (option == null) {
 			return getIndex(action);
 		}
@@ -247,7 +247,7 @@ public class Menu {
 		return -1;
 	}
 
-	private static String[] getMenuItemPart(final boolean firstPart) {
+	public static String[] getMenuItemPart(final boolean firstPart) {
 		final LinkedList<String> itemsList = new LinkedList<String>();
 		final Client client = Context.client();
 		String firstAction = "";
