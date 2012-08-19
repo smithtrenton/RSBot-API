@@ -54,6 +54,10 @@ public abstract class ActiveScript implements EventListener, Processor {
 		this.def = def;
 	}
 
+	public ScriptDefinition getDefinition() {
+		return def;
+	}
+
 	private void track(final String action) {
 		if (def == null || def.local || def.getID() == null || def.getID().isEmpty() || def.getName() == null) {
 			return;
