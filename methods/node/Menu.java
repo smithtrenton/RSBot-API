@@ -286,7 +286,7 @@ public class Menu {
 		for (final String item : items) {
 			output.add(item == null ? "" : stripFormatting(item));
 		}
-		if (output.size() > 1 && firstAction.equals(isCollapsed() ? "Walk here" : "Cancel")) {
+		if (output.size() > 1 && firstAction != null && firstAction.equals(isCollapsed() ? "Walk here" : "Cancel")) {
 			Collections.reverse(output);
 		}
 		return output.toArray(new String[output.size()]);
