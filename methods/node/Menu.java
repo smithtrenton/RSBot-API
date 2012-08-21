@@ -250,14 +250,14 @@ public class Menu {
 	public static String[] getMenuItemPart(final boolean firstPart) {
 		final LinkedList<String> itemsList = new LinkedList<String>();
 		final Client client = Context.client();
-		String firstAction = "";
+		String firstAction = null;
 		if (isCollapsed()) {
 			final Queue<MenuGroupNode> menu = new Queue<MenuGroupNode>((NodeSubQueue) client.getCollapsedMenuItems());
 			try {
 				for (MenuGroupNode mgn = menu.getHead(); mgn != null; mgn = menu.getNext()) {
 					final Queue<MenuItemNode> submenu = new Queue<MenuItemNode>((NodeSubQueue) mgn.getItems());
 					for (MenuItemNode min = submenu.getHead(); min != null; min = submenu.getNext()) {
-						if (firstAction != null) {
+						if (firstAction == null || firstAction.isEmpty()) {
 							firstAction = (String) min.getAction();
 						}
 						itemsList.addLast(firstPart ?
@@ -271,7 +271,7 @@ public class Menu {
 			try {
 				final Deque<MenuItemNode> menu = new Deque<MenuItemNode>((NodeDeque) client.getMenuItems());
 				for (MenuItemNode min = menu.getHead(); min != null; min = menu.getNext()) {
-					if (firstAction != null) {
+					if (firstAction == null || firstAction.isEmpty()) {
 						firstAction = (String) min.getAction();
 					}
 					itemsList.addLast(firstPart ?
