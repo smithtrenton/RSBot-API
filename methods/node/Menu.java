@@ -283,8 +283,7 @@ public class Menu {
 		}
 		final String[] items = itemsList.toArray(new String[itemsList.size()]);
 		final LinkedList<String> output = new LinkedList<String>();
-		for (int i = items.length - 1; i >= 0; i--) {
-			final String item = items[i];
+		for (final String item : items) {
 			output.add(item == null ? "" : stripFormatting(item));
 		}
 		if (output.size() > 1 && firstAction.equals(isCollapsed() ? "Walk here" : "Cancel")) {
