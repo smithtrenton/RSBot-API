@@ -21,12 +21,13 @@ public class Inventory {
 	public static final int WIDGET_DUNGEONEERING_SHOP = 957;
 	public static final int WIDGET_BEAST_OF_BURDEN_STORAGE = 665;
 	public static final int WIDGET_STORE = 1266;
+	public static final int WIDGET_SAWMILL_CART = 771;
 
 	public static final int[] ALT_WIDGETS = {
 			WIDGET_BANK,
 			WIDGET_PRICE_CHECK, WIDGET_EQUIPMENT_BONUSES,
 			WIDGET_EXCHANGE, WIDGET_SHOP, WIDGET_DUNGEONEERING_SHOP,
-			WIDGET_BEAST_OF_BURDEN_STORAGE, WIDGET_STORE
+			WIDGET_BEAST_OF_BURDEN_STORAGE, WIDGET_STORE, WIDGET_SAWMILL_CART
 	};
 
 	public static final Filter<Item> ALL_FILTER = new Filter<Item>() {
