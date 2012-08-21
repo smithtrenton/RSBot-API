@@ -191,13 +191,8 @@ public class Menu {
 		if (isOpen()) {
 			final Point subLoc = getSubLocation();
 			final Point start = Mouse.getLocation();
-			final int subOff = subLoc.x - start.x;
 			x = Random.nextInt(4, items[sIdx].length() * 4);
-			if (subOff > 0) {
-				Mouse.move(Random.nextInt(subOff + 4, subOff + Random.nextInt(4, items[sIdx].length() * 2)), start.y);
-			} else {
-				Mouse.move(subLoc.x + x, Mouse.getLocation().y, 2, 0);
-			}
+			Mouse.move(subLoc.x + x, start.y, 2, 0);
 			Time.sleep(Random.nextInt(125, 150));
 			if (isOpen()) {
 				y = 16 * sIdx + Random.nextInt(3, 12) + 21;
