@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.powerbot.concurrent.LoopTask;
 import org.powerbot.concurrent.Processor;
-import org.powerbot.concurrent.TaskContainer;
-import org.powerbot.concurrent.TaskProcessor;
 import org.powerbot.concurrent.strategy.DaemonState;
 import org.powerbot.concurrent.strategy.Strategy;
 import org.powerbot.concurrent.strategy.StrategyDaemon;
@@ -27,7 +29,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 	public final Logger log = Logger.getLogger(getClass().getName());
 
 	private EventManager eventManager;
-	private TaskContainer container;
+	private ThreadPoolExecutor container;
 	private StrategyDaemon executor;
 	private final List<LoopTask> loopTasks;
 	private final List<EventListener> listeners;
@@ -68,7 +70,8 @@ public abstract class ActiveScript implements EventListener, Processor {
 	public final void init(final Context context) {
 		this.context = context;
 		eventManager = context.getEventManager();
-		container = new TaskProcessor(context.getThreadGroup());
+		final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
+		container = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors(), 60, TimeUnit.HOURS, workQueue);
 		executor = new StrategyDaemon(container, context.getContainer());
 		track("");
 	}
@@ -231,7 +234,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 	}
 
 	public final void kill() {
-		container.stop();
+		container.shutdownNow();
 		track("kill");
 	}
 
@@ -255,7 +258,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		return silent;
 	}
 
-	public final TaskContainer getContainer() {
+	public final ThreadPoolExecutor getContainer() {
 		return container;
 	}
 }
