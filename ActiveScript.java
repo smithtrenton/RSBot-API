@@ -27,6 +27,7 @@ import org.powerbot.util.Tracker;
  */
 public abstract class ActiveScript implements EventListener, Processor {
 	public final Logger log = Logger.getLogger(getClass().getName());
+	public final long started;
 
 	private EventManager eventManager;
 	private ThreadPoolExecutor container;
@@ -40,6 +41,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 	private ScriptDefinition def;
 
 	public ActiveScript() {
+		started = System.currentTimeMillis();
 		eventManager = null;
 		container = null;
 		executor = null;
