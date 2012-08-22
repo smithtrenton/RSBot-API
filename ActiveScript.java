@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 import org.powerbot.concurrent.LoopTask;
 import org.powerbot.concurrent.Processor;
-import org.powerbot.concurrent.Task;
 import org.powerbot.concurrent.TaskContainer;
 import org.powerbot.concurrent.TaskProcessor;
 import org.powerbot.concurrent.strategy.DaemonState;
@@ -104,7 +103,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		}
 	}
 
-	public final Future<?> submit(final Task task) {
+	public final Future<?> submit(final Runnable task) {
 		return container.submit(task);
 	}
 
@@ -122,7 +121,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		return true;
 	}
 
-	public final void terminated(final Task task) {
+	public final void terminated(final Runnable task) {
 		if (task instanceof LoopTask) {
 			final LoopTask loopTask = (LoopTask) task;
 			listeners.remove(loopTask);
@@ -136,8 +135,8 @@ public abstract class ActiveScript implements EventListener, Processor {
 
 	protected abstract void setup();
 
-	public final Task start() {
-		return new Task() {
+	public final Runnable start() {
+		return new Runnable() {
 			public void run() {
 				setup();
 				resume();
@@ -200,7 +199,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 
 	public final void stop() {
 		if (!container.isShutdown()) {
-			container.submit(new Task() {
+			container.submit(new Runnable() {
 				public void run() {
 					onStop();
 				}
