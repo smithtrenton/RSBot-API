@@ -191,13 +191,8 @@ public class Menu {
 		if (isOpen()) {
 			final Point subLoc = getSubLocation();
 			final Point start = Mouse.getLocation();
-			final int subOff = subLoc.x - start.x;
 			x = Random.nextInt(4, items[sIdx].length() * 4);
-			if (subOff > 0) {
-				Mouse.move(Random.nextInt(subOff + 4, subOff + Random.nextInt(4, items[sIdx].length() * 2)), start.y);
-			} else {
-				Mouse.move(subLoc.x + x, Mouse.getLocation().y, 2, 0);
-			}
+			Mouse.move(subLoc.x + x, start.y, 2, 0);
 			Time.sleep(Random.nextInt(125, 150));
 			if (isOpen()) {
 				y = 16 * sIdx + Random.nextInt(3, 12) + 21;
@@ -250,14 +245,14 @@ public class Menu {
 	public static String[] getMenuItemPart(final boolean firstPart) {
 		final LinkedList<String> itemsList = new LinkedList<String>();
 		final Client client = Context.client();
-		String firstAction = "";
+		String firstAction = null;
 		if (isCollapsed()) {
 			final Queue<MenuGroupNode> menu = new Queue<MenuGroupNode>((NodeSubQueue) client.getCollapsedMenuItems());
 			try {
 				for (MenuGroupNode mgn = menu.getHead(); mgn != null; mgn = menu.getNext()) {
 					final Queue<MenuItemNode> submenu = new Queue<MenuItemNode>((NodeSubQueue) mgn.getItems());
 					for (MenuItemNode min = submenu.getHead(); min != null; min = submenu.getNext()) {
-						if (firstAction != null) {
+						if (firstAction == null || firstAction.isEmpty()) {
 							firstAction = (String) min.getAction();
 						}
 						itemsList.addLast(firstPart ?
@@ -271,7 +266,7 @@ public class Menu {
 			try {
 				final Deque<MenuItemNode> menu = new Deque<MenuItemNode>((NodeDeque) client.getMenuItems());
 				for (MenuItemNode min = menu.getHead(); min != null; min = menu.getNext()) {
-					if (firstAction != null) {
+					if (firstAction == null || firstAction.isEmpty()) {
 						firstAction = (String) min.getAction();
 					}
 					itemsList.addLast(firstPart ?
@@ -283,11 +278,10 @@ public class Menu {
 		}
 		final String[] items = itemsList.toArray(new String[itemsList.size()]);
 		final LinkedList<String> output = new LinkedList<String>();
-		for (int i = items.length - 1; i >= 0; i--) {
-			final String item = items[i];
+		for (final String item : items) {
 			output.add(item == null ? "" : stripFormatting(item));
 		}
-		if (output.size() > 1 && firstAction.equals(isCollapsed() ? "Walk here" : "Cancel")) {
+		if (output.size() > 1 && firstAction != null && firstAction.equals(isCollapsed() ? "Walk here" : "Cancel")) {
 			Collections.reverse(output);
 		}
 		return output.toArray(new String[output.size()]);
