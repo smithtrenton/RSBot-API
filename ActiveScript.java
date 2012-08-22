@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.powerbot.concurrent.LoopTask;
 import org.powerbot.concurrent.Processor;
+import org.powerbot.concurrent.ThreadPool;
 import org.powerbot.concurrent.strategy.DaemonState;
 import org.powerbot.concurrent.strategy.Strategy;
 import org.powerbot.concurrent.strategy.StrategyDaemon;
@@ -70,8 +70,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 	public final void init(final Context context) {
 		this.context = context;
 		eventManager = context.getEventManager();
-		final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();
-		container = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors(), 60, TimeUnit.HOURS, workQueue);
+		container = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors() * 2, 60, TimeUnit.HOURS, new SynchronousQueue<Runnable>(), new ThreadPool(context.getThreadGroup()), new ThreadPoolExecutor.CallerRunsPolicy());
 		executor = new StrategyDaemon(container, context.getContainer());
 		track("");
 	}
