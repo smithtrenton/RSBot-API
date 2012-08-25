@@ -1,5 +1,7 @@
 package org.powerbot.game.api.methods.tab;
 
+import java.awt.Point;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -7,6 +9,7 @@ import org.powerbot.game.api.methods.Settings;
 import org.powerbot.game.api.methods.Tabs;
 import org.powerbot.game.api.methods.Widgets;
 import org.powerbot.game.api.util.Time;
+import org.powerbot.game.api.util.Timer;
 
 /**
  * @author ArcaneSanity
@@ -24,7 +27,7 @@ public class Prayer {
 		public boolean isSetQuick();
 	}
 
-	public enum CURSES implements PrayerBook {
+	public static enum CURSES implements PrayerBook {
 		PROTECT_ITEM_CURSE(0, 0, 50),
 		SAP_WARRIOR(1, 1, 50),
 		SAP_RANGER(2, 2, 52),
@@ -75,7 +78,7 @@ public class Prayer {
 		}
 	}
 
-	public enum NORMAL implements PrayerBook {
+	public static enum NORMAL implements PrayerBook {
 		THICK_SKIN(0, 0, 1),
 		BURST_OF_STRENGTH(1, 1, 4),
 		CLARITY_OF_THOUGHT(2, 2, 7),
@@ -141,19 +144,32 @@ public class Prayer {
 	public static final int PRAYER_BOOK_CURSES = 0x17;
 	public static final int PRAYER_BOOK_NORMAL = 0x16;
 
+	/**
+	 * Retrieves the current prayer points.
+	 * @return Current prayer points.
+	 */
 	public static int getPoints() {
 		return Settings.get(2382, 0x3ff);
 	}
 
+	/**
+	 * Determines whether current prayer book is ancient curses.
+	 * @return <tt>true</tt> if on curses, otherwise <tt>false</tt>.
+	 */
 	public static boolean isCursesOn() {
 		return Settings.get(1584) % 2 != 0;
 	}
 
+	/**
+	 * Determines whether the quick prayers/curses are on.
+	 * @return <tt>true</tt> if quick prayers/curses are on, otherwise <tt>false</tt>.
+	 */
 	public static boolean isQuickOn() {
 		return Settings.get(1396) == 0x2;
 	}
 
 	/**
+	 * Retrieves prayers/curses that are currently active.
 	 * @return An array of currently active prayers/curses.
 	 */
 	public static PrayerBook[] getActive() {
@@ -167,7 +183,8 @@ public class Prayer {
 	}
 
 	/**
-	 * @return An array of currently set prayers/curses to quick use.
+	 * Retrieves prayers/curses set to quick-use.
+	 * @return An array of currently set prayers/curses to quick-use.
 	 */
 	public static PrayerBook[] getQuick() {
 		Set<PrayerBook> setquick = new LinkedHashSet<PrayerBook>();
@@ -180,14 +197,18 @@ public class Prayer {
 	}
 
 	/**
+	 * Turns on or off quick prayers/curses.
 	 * @param activate <tt>true</tt> to turn quick prayers/curses on, <tt>false</tt> to turn quick prayers/curses off.
+	 * @return <tt>true</tt> if quick prayers/curses turned on/off, otherwise <tt>false</tt>.
 	 */
 	public static boolean toggleQuick(final boolean activate) {
 		return isQuickOn() == activate || Widgets.get(WIDGET_PRAYER_ORB, 2).interact("Turn");
 	}
 
 	/**
-	 * @param prayers Prayers/Curses to set to quick use
+	 * Sets given prayers/curses to quick-use.
+	 * @param prayers Prayers/Curses to set to quick use.
+	 * @return <tt>true</tt> if prayers/curses successfully set to quick-use, otherwise <tt>false</tt>.
 	 */
 	public static boolean setQuick(final PrayerBook... prayers) {
 		for (PrayerBook p : prayers) {
@@ -197,57 +218,107 @@ public class Prayer {
 			}
 		}
 		if (Widgets.get(WIDGET_PRAYER_ORB, 2).interact("Select quick")) {
-			for (int i = 0; i < 20 && Settings.get(1396) != 0x1; i++) {
-				Time.sleep(50);
+			final Timer timer = new Timer(1000);
+			while (timer.isRunning() && Settings.get(1396) != 0x1) {
+				Time.sleep(15);
 			}
-			Time.sleep(200);
+			Time.sleep(100);
 			for (PrayerBook p : prayers) {
 				if (p.isSetQuick()) {
 					continue;
 				}
 				if (Widgets.get(WIDGET_PRAYER, 42).getChild(p.getId()).interact("Select")) {
-					for (int i = 0; i < 10 && !p.isSetQuick(); i++) {
-						Time.sleep(50);
+					final Timer t = new Timer(500);
+					while (t.isRunning() && !p.isSetQuick()) {
+						Time.sleep(15);
 					}
 				} else {
 					Widgets.get(WIDGET_PRAYER, 43).interact("Confirm");
 					return false;
 				}
 			}
+			Arrays.sort(prayers);
+			for (PrayerBook p : getQuick()) {
+				if (Arrays.binarySearch(prayers, p) < 0) {
+					if (Widgets.get(WIDGET_PRAYER, 42).getChild(p.getId()).interact("Deselect")) {
+						final Timer t = new Timer(500);
+						while (t.isRunning() && !p.isSetQuick()) {
+							Time.sleep(15);
+						}
+					} else {
+						Widgets.get(WIDGET_PRAYER, 43).interact("Confirm");
+						return false;
+					}
+				}
+			}
 			return Widgets.get(WIDGET_PRAYER, 43).interact("Confirm");
+		}
+		return false;
+	}
+	
+	/**
+	 * Activates and deactivates quick prayers/curses in short time resulting in prayers/curses effects and no prayer points loss.
+	 * @return <tt>true</tt> if flash was successful, otherwise <tt>false</tt>.
+	 */
+	public static boolean flashQuick() {
+		final Point point =  Widgets.get(WIDGET_PRAYER_ORB, 2).getNextViewportPoint();
+		if (Mouse.click(point, true)) {
+			Time.sleep(250, 350);
+			return Mouse.click(point, true);
 		}
 		return false;
 	}
 
 	/**
-	 * @param prayer Desired prayer/curse
-	 * @param active <tt>true</tt> to activate, <tt>false</tt> to deactivate
+	 * Activates or deactivates given prayer.
+	 * @param prayer Desired prayer/curse.
+	 * @param activate <tt>true</tt> to activate, <tt>false</tt> to deactivate.
+	 * @return <tt>true</tt> if prayer/curse successfully activated/deactivated, <tt>false</tt> if failed to 
+	 * activate/deactivate or player does not meet requirements for given prayer/curse.
 	 */
-	public static boolean togglePrayer(final PrayerBook prayer, final boolean active) {
+	public static boolean togglePrayer(final PrayerBook prayer, final boolean activate) {
 		if (prayer.getBook() != (isCursesOn() ? PRAYER_BOOK_CURSES : PRAYER_BOOK_NORMAL)
 				|| prayer.getRequiredLevel() > Skills.getRealLevel(Skills.PRAYER)) {
 			return false;
 		}
-		if (prayer.isActive() == active) {
+		if (prayer.isActive() == activate) {
 			return true;
 		}
-		if (!Tabs.getCurrent().equals(Tabs.PRAYER)) {
-			Tabs.PRAYER.open(false);
-			for (int i = 0; i < 20 && !Tabs.getCurrent().equals(Tabs.PRAYER); i++) {
-				Time.sleep(50);
+		if (Tabs.PRAYER.open(false)) {
+			return Widgets.get(WIDGET_PRAYER, 8).getChild(prayer.getId()).interact(activate ? "Activate" : "Deactivate");
+		}
+		return false;
+	}
+	
+	/**
+	 * Activates and deactivates prayer/curse in short time resulting in prayer/curse effect and no prayer points loss.
+	 * @param prayer Desired prayer/curse to flash.
+	 * @return <tt>true</tt> if flash was successful, otherwise <tt>false</tt>.
+	 */
+	public static boolean flashPrayer(final PrayerBook prayer) {
+		if (Tabs.PRAYER.open(false)) {
+			final Point point = Widgets.get(WIDGET_PRAYER, 8).getChild(prayer.getId()).getNextViewportPoint();
+			if (Mouse.click(point, true)) {
+				Time.sleep(250, 350);
+				return Mouse.click(point, true);
 			}
 		}
-		return Widgets.get(WIDGET_PRAYER, 8).getChild(prayer.getId()).interact(active ? "Activate" : "Deactivate");
+		return false;
 	}
 
+	/**
+	 * Deactivates all active prayers/curses.
+	 * @return <tt>true</tt> if all prayers/curses deactivated, otherwise <tt>false</tt>.
+	 */
 	public static boolean deactivateAll() {
 		if (getActive().length == 0) {
 			return true;
 		}
 		for (PrayerBook p : getActive()) {
 			if (togglePrayer(p, false)) {
-				for (int i = 0; i < 10 && p.isActive(); i++) {
-					Time.sleep(50);
+				final Timer timer = new Timer(500);
+				while (timer.isRunning() && p.isActive()) {
+					Time.sleep(15);
 				}
 			}
 		}
