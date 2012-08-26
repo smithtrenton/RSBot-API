@@ -72,7 +72,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 	public final void init(final Context context) {
 		this.context = context;
 		eventManager = context.getEventManager();
-		container = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors() * 2, 60, TimeUnit.HOURS, new SynchronousQueue<Runnable>(), new ThreadPool(context.getThreadGroup()), new ThreadPoolExecutor.CallerRunsPolicy());
+		container = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 60, TimeUnit.HOURS, new SynchronousQueue<Runnable>(), new ThreadPool(context.getThreadGroup()), new ThreadPoolExecutor.CallerRunsPolicy());
 		executor = new StrategyDaemon(container, context.getContainer());
 		track("");
 	}
