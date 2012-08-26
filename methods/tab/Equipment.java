@@ -17,7 +17,7 @@ public class Equipment {
 	public static final int NUM_APPEARANCE_SLOTS = 9;
 	public static final int NUM_SLOTS = 12;
 
-	public enum Slot {
+	public static enum Slot {
 		HELMET(6, 0, 0),
 		CAPE(9, 1, 1),
 		NECK(12, 2, 2),
