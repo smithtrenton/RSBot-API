@@ -27,7 +27,7 @@ public class Prayer {
 		public boolean isSetQuick();
 	}
 
-	public static enum CURSES implements PrayerBook {
+	public static enum Curses implements PrayerBook {
 		PROTECT_ITEM_CURSE(0, 0, 50),
 		SAP_WARRIOR(1, 1, 50),
 		SAP_RANGER(2, 2, 52),
@@ -51,7 +51,7 @@ public class Prayer {
 
 		private final int id, shift, level;
 
-		CURSES(final int id, final int shift, final int level) {
+		Curses(final int id, final int shift, final int level) {
 			this.id = id;
 			this.shift = shift;
 			this.level = level;
@@ -78,7 +78,7 @@ public class Prayer {
 		}
 	}
 
-	public static enum NORMAL implements PrayerBook {
+	public static enum Normal implements PrayerBook {
 		THICK_SKIN(0, 0, 1),
 		BURST_OF_STRENGTH(1, 1, 4),
 		CLARITY_OF_THOUGHT(2, 2, 7),
@@ -112,7 +112,7 @@ public class Prayer {
 
 		private final int id, shift, level;
 
-		private NORMAL(final int id, final int shift, final int level) {
+		private Normal(final int id, final int shift, final int level) {
 			this.id = id;
 			this.shift = shift;
 			this.level = level;
@@ -174,7 +174,7 @@ public class Prayer {
 	 */
 	public static PrayerBook[] getActive() {
 		Set<PrayerBook> active = new LinkedHashSet<PrayerBook>();
-		for (PrayerBook p : isCursesOn() ? CURSES.values() : NORMAL.values()) {
+		for (PrayerBook p : isCursesOn() ? Curses.values() : Normal.values()) {
 			if (p.isActive()) {
 				active.add(p);
 			}
@@ -188,7 +188,7 @@ public class Prayer {
 	 */
 	public static PrayerBook[] getQuick() {
 		Set<PrayerBook> setquick = new LinkedHashSet<PrayerBook>();
-		for (PrayerBook p : isCursesOn() ? CURSES.values() : NORMAL.values()) {
+		for (PrayerBook p : isCursesOn() ? Curses.values() : Normal.values()) {
 			if (p.isSetQuick()) {
 				setquick.add(p);
 			}
