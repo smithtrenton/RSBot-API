@@ -169,9 +169,6 @@ public class Camera {
 		final Tile t = mobile.getLocation();
 		final Tile me = Players.getLocal().getLocation();
 		int angle = ((int) Math.toDegrees(Math.atan2(t.getY() - me.getY(), t.getX() - me.getX()))) - 90;
-		if (angle < 0) {
-			angle = 360 + angle;
-		}
-		return angle % 360;
+		return angle;
 	}
 }
