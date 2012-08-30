@@ -204,6 +204,21 @@ public class DepositBox {
 		return items.toArray(new Item[items.size()]);
 	}
 
+	public static Item[] getItems(final Filter<Item> filter) {
+		if (!isOpen()) {
+			return new Item[0];
+		}
+		final WidgetChild[] slots = Widgets.get(WIDGET_DEPOSIT_BOX, WIDGET_SLOTS_CONTAINER).getChildren();
+		final ArrayList<Item> items = new ArrayList<Item>();
+		for (final WidgetChild slot : slots) {
+			final Item item;
+			if (slot.getChildId() != -1 && filter.accept(item = new Item(slot))) {
+				items.add(item);
+			}
+		}
+		return items.toArray(new Item[items.size()]);
+	}
+
 	public static int getItemCount(final int... ids) {
 		return getItemCount(false, new Filter<Item>() {
 			public boolean accept(final Item item) {
