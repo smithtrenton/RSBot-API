@@ -8,6 +8,7 @@ import java.util.Set;
 import org.powerbot.game.api.methods.Settings;
 import org.powerbot.game.api.methods.Tabs;
 import org.powerbot.game.api.methods.Widgets;
+import org.powerbot.game.api.methods.input.Mouse;
 import org.powerbot.game.api.util.Time;
 import org.powerbot.game.api.util.Timer;
 
@@ -146,6 +147,7 @@ public class Prayer {
 
 	/**
 	 * Retrieves the current prayer points.
+	 *
 	 * @return Current prayer points.
 	 */
 	public static int getPoints() {
@@ -154,6 +156,7 @@ public class Prayer {
 
 	/**
 	 * Determines whether current prayer book is ancient curses.
+	 *
 	 * @return <tt>true</tt> if on curses, otherwise <tt>false</tt>.
 	 */
 	public static boolean isCursesOn() {
@@ -162,6 +165,7 @@ public class Prayer {
 
 	/**
 	 * Determines whether the quick prayers/curses are on.
+	 *
 	 * @return <tt>true</tt> if quick prayers/curses are on, otherwise <tt>false</tt>.
 	 */
 	public static boolean isQuickOn() {
@@ -170,6 +174,7 @@ public class Prayer {
 
 	/**
 	 * Retrieves prayers/curses that are currently active.
+	 *
 	 * @return An array of currently active prayers/curses.
 	 */
 	public static PrayerBook[] getActive() {
@@ -184,6 +189,7 @@ public class Prayer {
 
 	/**
 	 * Retrieves prayers/curses set to quick-use.
+	 *
 	 * @return An array of currently set prayers/curses to quick-use.
 	 */
 	public static PrayerBook[] getQuick() {
@@ -198,6 +204,7 @@ public class Prayer {
 
 	/**
 	 * Turns on or off quick prayers/curses.
+	 *
 	 * @param activate <tt>true</tt> to turn quick prayers/curses on, <tt>false</tt> to turn quick prayers/curses off.
 	 * @return <tt>true</tt> if quick prayers/curses turned on/off, otherwise <tt>false</tt>.
 	 */
@@ -207,6 +214,7 @@ public class Prayer {
 
 	/**
 	 * Sets given prayers/curses to quick-use.
+	 *
 	 * @param prayers Prayers/Curses to set to quick use.
 	 * @return <tt>true</tt> if prayers/curses successfully set to quick-use, otherwise <tt>false</tt>.
 	 */
@@ -255,13 +263,14 @@ public class Prayer {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Activates and deactivates quick prayers/curses in short time resulting in prayers/curses effects and no prayer points loss.
+	 *
 	 * @return <tt>true</tt> if flash was successful, otherwise <tt>false</tt>.
 	 */
 	public static boolean flashQuick() {
-		final Point point =  Widgets.get(WIDGET_PRAYER_ORB, 2).getNextViewportPoint();
+		final Point point = Widgets.get(WIDGET_PRAYER_ORB, 2).getNextViewportPoint();
 		if (Mouse.click(point, true)) {
 			Time.sleep(250, 350);
 			return Mouse.click(point, true);
@@ -271,10 +280,11 @@ public class Prayer {
 
 	/**
 	 * Activates or deactivates given prayer.
-	 * @param prayer Desired prayer/curse.
+	 *
+	 * @param prayer   Desired prayer/curse.
 	 * @param activate <tt>true</tt> to activate, <tt>false</tt> to deactivate.
-	 * @return <tt>true</tt> if prayer/curse successfully activated/deactivated, <tt>false</tt> if failed to 
-	 * activate/deactivate or player does not meet requirements for given prayer/curse.
+	 * @return <tt>true</tt> if prayer/curse successfully activated/deactivated, <tt>false</tt> if failed to
+	 *         activate/deactivate or player does not meet requirements for given prayer/curse.
 	 */
 	public static boolean togglePrayer(final PrayerBook prayer, final boolean activate) {
 		if (prayer.getBook() != (isCursesOn() ? PRAYER_BOOK_CURSES : PRAYER_BOOK_NORMAL)
@@ -289,9 +299,10 @@ public class Prayer {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Activates and deactivates prayer/curse in short time resulting in prayer/curse effect and no prayer points loss.
+	 *
 	 * @param prayer Desired prayer/curse to flash.
 	 * @return <tt>true</tt> if flash was successful, otherwise <tt>false</tt>.
 	 */
@@ -308,6 +319,7 @@ public class Prayer {
 
 	/**
 	 * Deactivates all active prayers/curses.
+	 *
 	 * @return <tt>true</tt> if all prayers/curses deactivated, otherwise <tt>false</tt>.
 	 */
 	public static boolean deactivateAll() {
