@@ -49,6 +49,15 @@ public class Inventory {
 		return null;
 	}
 
+	public static Item getItem(final Filter<Item> filter) {
+		final Item[] items = getItems(false);
+		for (final Item item : items) {
+			if (filter.accept(item)) 
+				return item;
+		}
+		return null;
+	}
+
 	public static Item[] getItems() {
 		return getItems(false);
 	}
