@@ -144,6 +144,26 @@ public class Prayer {
 	public static final int WIDGET_PRAYER_ORB = 749;
 	public static final int PRAYER_BOOK_CURSES = 0x17;
 	public static final int PRAYER_BOOK_NORMAL = 0x16;
+	
+	public static final int ICON_PROTECT_FROM_MELEE = 0;
+	public static final int ICON_PROTECT_FROM_MISSILES = 1;
+	public static final int ICON_PROTECT_FROM_MAGIC = 2;
+	public static final int ICON_RETRIBUTION = 3;
+	public static final int ICON_REDEMPTION = 4;
+	public static final int ICON_SMITE = 5;
+	public static final int ICON_PROTECT_FROM_SUMMONING = 7;
+	public static final int ICON_PROTECT_FROM_SUMMONING_AND_MELEE = 8;
+	public static final int ICON_PROTECT_FROM_SUMMONING_AND_MISSILES = 9;
+	public static final int ICON_PROTECT_FROM_SUMMONING_AND_MAGIC = 10;
+	public static final int ICON_DEFLECT_MELEE = 12;
+	public static final int ICON_DEFLECT_MAGIC = 13;
+	public static final int ICON_DEFLECT_MISSILES = 14;
+	public static final int ICON_DEFLECT_SUMMONING = 15;
+	public static final int ICON_DEFLECT_SUMMONING_AND_MELEE = 16;
+	public static final int ICON_DEFLECT_SUMMONING_AND_MISSILES = 17;
+	public static final int ICON_DEFLECT_SUMMONING_AND_MAGIC = 18;
+	public static final int ICON_WRATH = 19;
+	public static final int ICON_SOUL_SPLIT = 20;
 
 	/**
 	 * Retrieves the current prayer points.
@@ -281,7 +301,7 @@ public class Prayer {
 	/**
 	 * Activates or deactivates given prayer.
 	 *
-	 * @param prayer   Desired prayer/curse.
+	 * @param prayer Desired prayer/curse.
 	 * @param activate <tt>true</tt> to activate, <tt>false</tt> to deactivate.
 	 * @return <tt>true</tt> if prayer/curse successfully activated/deactivated, <tt>false</tt> if failed to
 	 *         activate/deactivate or player does not meet requirements for given prayer/curse.
