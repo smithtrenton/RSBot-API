@@ -173,15 +173,15 @@ public class Inventory {
 		}
 		return count;
 	}
-	
+
 	public static boolean contains(final int id) {
 		return getItem(id) != null;
 	}
-	
+
 	public static boolean containsOneOf(final int... ids) {
-		return getCount(ids).length > 0;
+		return getCount(ids) > 0;
 	}
-	
+
 	public static boolean containsAll(final int... ids) {
 		for (final int id : ids) {
 			if (getItem(id) == null) {
