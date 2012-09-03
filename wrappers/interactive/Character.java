@@ -188,6 +188,10 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 		return c != null && getCombatInfoData() != null;
 	}
 
+	public boolean isIdle() {
+		return !isMoving() && !isInCombat() && getAnimation() == -1 && getInteracting() == null;
+	}
+
 	public String getMessage() {
 		try {
 			final RSMessageData message_data = (RSMessageData) get().getMessageData();
