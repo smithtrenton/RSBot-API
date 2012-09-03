@@ -3,12 +3,13 @@ package org.powerbot.game.api.methods.tab;
 import org.powerbot.game.api.methods.Settings;
 import org.powerbot.game.api.methods.Tabs;
 import org.powerbot.game.api.methods.Widgets;
+import org.powerbot.game.api.util.Time;
 import org.powerbot.game.api.wrappers.widget.WidgetChild;
 
 public class Attack {
 	public static final int WIDGET = 884;
-	public static final int WIDGET_BUTTON_AUTO_RETALIATE = 15;
-	public static final int WIDGET_BUTTON_SPECIAL_ATTACK = 4;
+	public static final int WIDGET_BUTTON_AUTO_RETALIATE = 12;
+	public static final int WIDGET_BUTTON_SPECIAL_ATTACK = 36;
 
 	/**
 	 * Gets the current fighting mode.
@@ -76,14 +77,14 @@ public class Attack {
 	 *
 	 * @param fightMode the fight mode to set it to
 	 */
-	public static void setFightMode(final int fightMode) {
-		if (fightMode != getFightMode()) {
-			Tabs.ATTACK.open();
-			final WidgetChild c = Widgets.get(WIDGET, fightMode + 11);
-			if (c != null) {
-				c.click(true);
+	public static boolean setFightMode(final int fightMode) {
+		if (Tabs.ATTACK.isOpen() || Tabs.ATTACK.open(true)) {
+			final WidgetChild styleButton = Widgets.get(WIDGET, fightMode + 7);
+			if (styleButton.validate() && styleButton.click(true)) {
+				for (byte b = 0; b < 20 && getFightMode() != fightMode; b++, Time.sleep(100)) ;
 			}
 		}
+		return getFightMode() == fightMode;
 	}
 
 	/**
@@ -91,13 +92,13 @@ public class Attack {
 	 *
 	 * @param enable <tt>true</tt> to enable; <tt>false</tt> to disable
 	 */
-	public static void setSpecial(final boolean enable) {
-		if (isSpecialEnabled() != enable) {
-			Tabs.ATTACK.open();
-			final WidgetChild c = Widgets.get(WIDGET, WIDGET_BUTTON_SPECIAL_ATTACK);
-			if (c != null) {
-				c.click(true);
+	public static boolean setSpecial(final boolean enable) {
+		if (isSpecialEnabled() != enable && (Tabs.ATTACK.isOpen() || Tabs.ATTACK.open())) {
+			final WidgetChild w = Widgets.get(WIDGET, WIDGET_BUTTON_SPECIAL_ATTACK);
+			if (w.isOnScreen() && w.interact("Toggle Special Attack")) {
+				for (byte i = 0; i < 10 && isSpecialEnabled() != enable; i++, Time.sleep(100)) ;
 			}
 		}
+		return isSpecialEnabled() == enable;
 	}
 }
