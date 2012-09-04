@@ -13,10 +13,9 @@ import org.powerbot.game.api.wrappers.interactive.Player;
 import org.powerbot.game.api.wrappers.widget.WidgetChild;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
-import org.powerbot.game.client.RSGroundBytes_Bytes;
-import org.powerbot.game.client.RSGroundInfoTileData;
-import org.powerbot.game.client.RSInfoGroundBytes;
-import org.powerbot.game.client.RSInfoRSGroundInfo;
+import org.powerbot.game.client.RSGroundByts;
+import org.powerbot.game.client.RSGroundInfo;
+import org.powerbot.game.client.RSInfo;
 import org.powerbot.game.client.TileData;
 
 /**
@@ -67,14 +66,13 @@ public class Calculations {
 		final Client client = Context.client();
 		final int x1 = x >> 9;
 		final int y1 = y >> 9;
-		final byte[][][] settings = (byte[][][]) ((RSGroundBytes_Bytes) (((RSInfoGroundBytes) client.getRSGroundInfo()).getRSInfoGroundBytes())).getRSGroundBytes_Bytes();
-		if (settings != null && x1 >= 0 && x1 < 104 && y1 >= 0 && y1 < 104) {
-			if (plane <= 3 && (settings[1][x1][y1] & 2) != 0) {
-				++plane;
-			}
-			final Object rsInfoGroundInfo = ((RSInfoRSGroundInfo) client.getRSGroundInfo()).getRSInfoRSGroundInfo();
-			if (rsInfoGroundInfo != null) {
-				final TileData[] planes = (TileData[]) ((RSGroundInfoTileData) rsInfoGroundInfo).getRSGroundInfoTileData();
+		try {
+			final byte[][][] settings = (byte[][][]) ((RSGroundByts) ((RSInfo) client.getRSGroundInfo()).getGroundBytes()).getBytes();
+			if (settings != null && x1 >= 0 && x1 < 104 && y1 >= 0 && y1 < 104) {
+				if (plane <= 3 && (settings[1][x1][y1] & 2) != 0) {
+					++plane;
+				}
+				final TileData[] planes = (TileData[]) ((RSGroundInfo) ((RSInfo) client.getRSGroundInfo()).getRSGroundInfo()).getTileData();
 				if (planes != null && plane < planes.length && planes[plane] != null) {
 					final int[][] heights = planes[plane].getHeights();
 					if (heights != null) {
@@ -86,6 +84,7 @@ public class Calculations {
 					}
 				}
 			}
+		} catch (final NullPointerException ignored) {
 		}
 		return 0;
 	}
@@ -150,7 +149,7 @@ public class Calculations {
 			return new Point(-1, -1);
 		}
 		final int actDistSq = calculatedX * calculatedX + calculatedY * calculatedY;
-		final int mmDist = Math.max(mm2.getWidth() / 2, mm2.getHeight() / 2) - 6;
+		final int mmDist = Math.max(mm2.getWidth() / 2, mm2.getHeight() / 2) - 8;
 
 		if (mmDist * mmDist >= actDistSq) {
 			int angle = 0x3fff & (int) client.getMinimapAngle();
@@ -197,20 +196,21 @@ public class Calculations {
 		return x >= 0 && y >= 0 && x < canvas.getWidth() && y < canvas.getHeight();
 	}
 
-	public static double distance(final Tile tile1, final Tile tile2) {
-		return Math.sqrt((tile1.getX() - tile2.getX()) * (tile1.getX() - tile2.getX()) + (tile1.getY() - tile2.getY()) * (tile1.getY() - tile2.getY()));
+	public static double distance(final Locatable locatable1, final Locatable locatable2) {
+		final Tile tile1 = locatable1.getLocation(), tile2 = locatable2.getLocation();
+		return Math.sqrt(Math.pow(tile1.getX() - tile2.getX(), 2) + Math.pow(tile1.getY() - tile2.getY(), 2));
 	}
 
 	public static double distance(final RegionOffset tile1, final RegionOffset tile2) {
-		return Math.sqrt((tile1.getX() - tile2.getX()) * (tile1.getX() - tile2.getX()) + (tile1.getY() - tile2.getY()) * (tile1.getY() - tile2.getY()));
+		return Math.sqrt(Math.pow(tile1.getX() - tile2.getX(), 2) + Math.pow(tile1.getY() - tile2.getY(), 2));
 	}
 
 	public static double distance(final int x1, final int y1, final int x2, final int y2) {
-		return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+		return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 	}
 
 	public static double distanceTo(final Locatable locatable) {
-		return distance(locatable.getLocation(), Players.getLocal().getLocation());
+		return distance(locatable, Players.getLocal());
 	}
 
 	public static double distanceTo(final RegionOffset offset) {

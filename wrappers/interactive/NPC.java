@@ -4,43 +4,38 @@ import java.lang.ref.SoftReference;
 
 import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.RSNPCDefActions;
-import org.powerbot.game.client.RSNPCDefID;
-import org.powerbot.game.client.RSNPCDefInts;
-import org.powerbot.game.client.RSNPCDefName;
-import org.powerbot.game.client.RSNPCInts;
-import org.powerbot.game.client.RSNPCLevel;
-import org.powerbot.game.client.RSNPCRSNPCDef;
+import org.powerbot.game.client.RSNPC;
+import org.powerbot.game.client.RSNPCDef;
 
 /**
  * @author Timer
  */
 public class NPC extends Character {
-	private final SoftReference<Object> n;
+	private final SoftReference<RSNPC> n;
 	private final Multipliers multipliers;
 
-	public NPC(final Object n) {
-		this.n = new SoftReference<Object>(n);
+	public NPC(final RSNPC n) {
+		this.n = new SoftReference<RSNPC>(n);
 		this.multipliers = Context.multipliers();
 	}
 
 	public int getLevel() {
-		return ((RSNPCLevel) ((RSNPCInts) get()).getRSNPCInts()).getRSNPCLevel() * multipliers.NPC_LEVEL;
+		return get().getLevel() * multipliers.NPC_LEVEL;
 	}
 
 	public String getName() {
-		return (String) ((RSNPCDefName) ((RSNPCRSNPCDef) get()).getRSNPCRSNPCDef()).getRSNPCDefName();
+		return (String) ((RSNPCDef) get().getRSNPCDef()).getName();
 	}
 
 	public int getId() {
-		return ((RSNPCDefID) ((RSNPCDefInts) ((RSNPCRSNPCDef) get()).getRSNPCRSNPCDef()).getRSNPCDefInts()).getRSNPCDefID() * multipliers.NPCDEF_ID;
+		return ((RSNPCDef) get().getRSNPCDef()).getID() * multipliers.NPCDEF_ID;
 	}
 
 	public String[] getActions() {
-		return (String[]) ((RSNPCDefActions) ((RSNPCRSNPCDef) get()).getRSNPCRSNPCDef()).getRSNPCDefActions();
+		return (String[]) ((RSNPCDef) get().getRSNPCDef()).getActions();
 	}
 
-	public Object get() {
+	public RSNPC get() {
 		return n.get();
 	}
 }

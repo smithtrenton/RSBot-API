@@ -4,8 +4,10 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.lang.ref.SoftReference;
+import java.util.Set;
 
 import org.powerbot.game.api.methods.Game;
+import org.powerbot.game.api.methods.node.SceneEntities;
 import org.powerbot.game.api.util.node.Nodes;
 import org.powerbot.game.api.wrappers.Area;
 import org.powerbot.game.api.wrappers.Entity;
@@ -14,66 +16,56 @@ import org.powerbot.game.api.wrappers.Locatable;
 import org.powerbot.game.api.wrappers.RegionOffset;
 import org.powerbot.game.api.wrappers.Tile;
 import org.powerbot.game.api.wrappers.graphics.CapturedModel;
-import org.powerbot.game.api.wrappers.graphics.model.LocationModel;
+import org.powerbot.game.api.wrappers.graphics.model.SceneObjectModel;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.CacheTable;
-import org.powerbot.game.client.HardReferenceGet;
+import org.powerbot.game.client.Cache;
+import org.powerbot.game.client.HardReference;
+import org.powerbot.game.client.HashTable;
 import org.powerbot.game.client.Model;
-import org.powerbot.game.client.ModelCapture;
 import org.powerbot.game.client.Node;
-import org.powerbot.game.client.RSAnimableShorts;
-import org.powerbot.game.client.RSAnimableX1;
-import org.powerbot.game.client.RSAnimableX2;
-import org.powerbot.game.client.RSAnimableY1;
-import org.powerbot.game.client.RSAnimableY2;
-import org.powerbot.game.client.RSInfoRSObjectDefLoaders;
-import org.powerbot.game.client.RSInteractableLocation;
-import org.powerbot.game.client.RSInteractableManager;
-import org.powerbot.game.client.RSInteractableRSInteractableManager;
-import org.powerbot.game.client.RSObjectDefLoaderCache;
-import org.powerbot.game.client.Reference;
-import org.powerbot.game.client.SoftReferenceGet;
+import org.powerbot.game.client.RSAnimable;
+import org.powerbot.game.client.RSInfo;
+import org.powerbot.game.client.RSInteractable;
+import org.powerbot.game.client.RSInteractableData;
+import org.powerbot.game.client.RSObject;
+import org.powerbot.game.client.RSObjectDef;
+import org.powerbot.game.client.RSObjectDefLoader;
 
 /**
  * @author Timer
  */
 public class SceneObject implements Entity, Locatable, Identifiable {
-	private final Object object;
+	private final RSObject object;
 	private final int type;
 	private final int plane;
 
-	public SceneObject(final Object obj, final int type, final int plane) {
+	public SceneObject(final RSObject obj, final int type, final int plane) {
 		this.object = obj;
 		this.type = type;
 		this.plane = plane;
 	}
 
 	public Area getArea() {
-		if (object instanceof RSAnimableShorts) {
-			final Object shorts = ((RSAnimableShorts) object).getRSAnimableShorts();
-			if (shorts instanceof RSAnimableX1 &&
-					shorts instanceof RSAnimableY1 &&
-					shorts instanceof RSAnimableX2 &&
-					shorts instanceof RSAnimableY2) {
-				final int bX = Game.getBaseX(), bY = Game.getBaseY();
-				final Tile tile1 = new Tile(
-						bX + (int) ((RSAnimableX1) shorts).getRSAnimableX1(),
-						bY + (int) ((RSAnimableY1) shorts).getRSAnimableY1(),
-						plane
-				);
-				final Tile tile2 = new Tile(
-						bX + (int) ((RSAnimableX2) shorts).getRSAnimableX2(),
-						bY + (int) ((RSAnimableY2) shorts).getRSAnimableY2(),
-						plane
-				);
-				return new Area(tile1, tile2);
-			}
+		if (object instanceof RSAnimable) {
+			final RSAnimable animable = (RSAnimable) object;
+			final int bX = Game.getBaseX(), bY = Game.getBaseY();
+			final Tile tile1 = new Tile(
+					bX + (int) animable.getX1(),
+					bY + (int) animable.getY1(),
+					plane
+			);
+			final Tile tile2 = new Tile(
+					bX + (int) animable.getX2(),
+					bY + (int) animable.getY2(),
+					plane
+			);
+			return new Area(tile1, tile2);
 		}
 		return null;
 	}
 
 	public int getId() {
-		return Context.client().getRSObjectID(object);
+		return object.getID();
 	}
 
 	public int getType() {
@@ -84,13 +76,14 @@ public class SceneObject implements Entity, Locatable, Identifiable {
 		return plane;
 	}
 
-	public Object getInstance() {
+	public RSObject getInstance() {
 		return object;
 	}
 
 	public RegionOffset getRegionOffset() {
-		final RSInteractableLocation location = ((RSInteractableManager) ((RSInteractableRSInteractableManager) object).getRSInteractableRSInteractableManager()).getData().getLocation();
-		return new RegionOffset((int) location.getX() / 512, (int) location.getY() / 512, plane);
+		final RSInteractable location = (RSInteractable) object;
+		final RSInteractableData data = (RSInteractableData) location.getData();
+		return new RegionOffset((int) data.getLocation().getX() / 512, (int) data.getLocation().getY() / 512, plane);
 	}
 
 	public Tile getLocation() {
@@ -98,19 +91,17 @@ public class SceneObject implements Entity, Locatable, Identifiable {
 		return new Tile(Game.getBaseX() + localTile.getX(), Game.getBaseY() + localTile.getY(), localTile.getPlane());
 	}
 
-	public LocationDefinition getDefinition() {
-		final Object object = ((RSInfoRSObjectDefLoaders) Context.client().getRSGroundInfo()).getRSInfoRSObjectDefLoaders();
-		final Object objectDefLoader = ((CacheTable) ((RSObjectDefLoaderCache) object).getRSObjectDefLoaderCache()).getCacheTable();
-		final Node ref = Nodes.lookup(objectDefLoader, getId());
-		if (ref != null && ref instanceof Reference) {
-			final Object reference = ((Reference) ref).getData();
-			if (reference instanceof SoftReferenceGet) {
-				final Object soft = ((SoftReferenceGet) reference).getSoftReferenceGet();
-				if (soft != null) {
-					return new LocationDefinition(soft instanceof SoftReference ? ((SoftReference<?>) soft).get() : soft);
+	public SceneObjectDefinition getDefinition() {
+		final HashTable rsObjectDefLoaders = (HashTable) ((Cache) ((RSObjectDefLoader) ((RSInfo) Context.client().getRSGroundInfo()).getRSObjectDefLoaders()).getCache()).getTable();
+		final Node ref = Nodes.lookup(rsObjectDefLoaders, getId());
+		if (ref != null) {
+			if (ref instanceof HardReference) {
+				return new SceneObjectDefinition((RSObjectDef) ((HardReference) ref).get());
+			} else if (ref instanceof SoftReference) {
+				final Object def = ((SoftReference<?>) ref).get();
+				if (def != null) {
+					return new SceneObjectDefinition((RSObjectDef) def);
 				}
-			} else if (reference instanceof HardReferenceGet) {
-				return new LocationDefinition(((HardReferenceGet) reference).getHardReferenceGet());
 			}
 		}
 		return null;
@@ -118,19 +109,24 @@ public class SceneObject implements Entity, Locatable, Identifiable {
 
 	public CapturedModel getModel() {
 		if (object != null) {
-			Model model = Context.client().getRSObjectModel(object);
-			if (model == null) {
-				model = ModelCapture.modelCache.get(object);
-			}
+			final Model model = object.getModel();
 			if (model != null) {
-				return new LocationModel(model, this);
+				return new SceneObjectModel(model, this);
 			}
 		}
 		return null;
 	}
 
 	public boolean validate() {
-		return getId() != -1;
+		final RegionOffset offset = getRegionOffset();
+		final Set<SceneObject> v_objects = SceneEntities.getLocalAt(offset.getX(), offset.getY(), -1);
+		final int id = this.getId();
+		for (final SceneObject object : v_objects) {
+			if (object.object == this.object && object.getId() == id) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public Point getCentralPoint() {
@@ -179,13 +175,21 @@ public class SceneObject implements Entity, Locatable, Identifiable {
 	}
 
 	public void draw(final Graphics render) {
-		//TODO color
 		final CapturedModel model = getModel();
 		if (model != null) {
 			model.draw(render);
 		} else {
 			getLocation().draw(render);
 		}
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (o instanceof SceneObject) {
+			final SceneObject object = (SceneObject) o;
+			return object.object == this.object;
+		}
+		return false;
 	}
 
 	@Override

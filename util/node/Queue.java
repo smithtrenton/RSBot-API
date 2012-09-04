@@ -1,25 +1,26 @@
 package org.powerbot.game.api.util.node;
 
 import org.powerbot.game.client.NodeSub;
-import org.powerbot.game.client.NodeSubQueueTail;
+import org.powerbot.game.client.NodeSubQueue;
 
 /**
  * @param <N> Node type.
  * @author Timer
  */
-public class Queue<N extends NodeSub> {
-	private final Object nl;
-	private NodeSub current;
+@SuppressWarnings("unchecked")
+public class Queue<N extends org.powerbot.game.client.NodeSub> {
+	private final NodeSubQueue nl;
+	private org.powerbot.game.client.NodeSub current;
 
-	public Queue(final Object nl) {
+	public Queue(NodeSubQueue nl) {
 		this.nl = nl;
 	}
 
 	public int size() {
 		int size = 0;
-		NodeSub node = ((NodeSub) ((NodeSubQueueTail) nl).getNodeSubQueueTail()).getPrevSub();
+		org.powerbot.game.client.NodeSub node = ((NodeSub) nl.getTail()).getPrevSub();
 
-		while (node != ((NodeSubQueueTail) nl).getNodeSubQueueTail()) {
+		while (node != nl.getTail()) {
 			node = node.getPrevSub();
 			size++;
 		}
@@ -27,11 +28,10 @@ public class Queue<N extends NodeSub> {
 		return size;
 	}
 
-	@SuppressWarnings("unchecked")
 	public N getHead() {
-		NodeSub node = ((NodeSub) ((NodeSubQueueTail) nl).getNodeSubQueueTail()).getNextSub();
+		org.powerbot.game.client.NodeSub node = ((NodeSub) nl.getTail()).getNextSub();
 
-		if (node == ((NodeSubQueueTail) nl).getNodeSubQueueTail()) {
+		if (node == nl.getTail()) {
 			current = null;
 			return null;
 		}
@@ -40,11 +40,10 @@ public class Queue<N extends NodeSub> {
 		return (N) node;
 	}
 
-	@SuppressWarnings("unchecked")
 	public N getNext() {
-		NodeSub node = current;
+		org.powerbot.game.client.NodeSub node = current;
 
-		if (node == ((NodeSubQueueTail) nl).getNodeSubQueueTail()) {
+		if (node == nl.getTail()) {
 			current = null;
 			return null;
 		}

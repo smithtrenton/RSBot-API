@@ -2,34 +2,27 @@ package org.powerbot.game.api.util.node;
 
 import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.HashTable2Buckets;
-import org.powerbot.game.client.HashTableBuckets;
 import org.powerbot.game.client.Node;
 
 /**
  * @author Timer
  */
 public class Nodes {
-	public static Node lookup(final Object nc, final long id) {
+	/**
+	 * @param nc The node cache to check
+	 * @param id The id of the node
+	 * @return A <tt>Node</tt> object corresponding to the ID in the nodecache.
+	 */
+	public static Node lookup(final org.powerbot.game.client.HashTable nc, final long id) {
 		try {
-			if (nc == null || id < 0L) {
+			if (nc == null || nc.getBuckets() == null || id < 0) {
 				return null;
 			}
-			final Node[] buckets;
-			Object o;
-			if (nc instanceof HashTableBuckets && ((o = ((HashTableBuckets) nc).getHashTableBuckets()) instanceof Node[])) {
-				buckets = (Node[]) o;
-			} else if (nc instanceof HashTable2Buckets && ((o = ((HashTable2Buckets) nc).getHashTable2Buckets()) instanceof Node[])) {
-				buckets = (Node[]) o;
-			} else {
-				buckets = null;
-			}
-			if (buckets == null) {
-				return null;
-			}
+
 			final Multipliers multipliers = Context.multipliers();
 			final long multiplier = (((long) multipliers.NODE_ID) << 32) + ((multipliers.NODE_ID_p2 & 0xFFFFFFFFL));
-			final Node n = buckets[(int) (id & buckets.length - 1)];
+
+			final Node n = ((Node[]) nc.getBuckets())[(int) (id & ((Node[]) nc.getBuckets()).length - 1)];
 			for (Node node = n.getPrevious(); node != n; node = node.getPrevious()) {
 				if (node.getID() * multiplier == id) {
 					return node;

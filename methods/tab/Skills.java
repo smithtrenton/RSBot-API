@@ -1,5 +1,8 @@
 package org.powerbot.game.api.methods.tab;
 
+import org.powerbot.game.api.methods.Widgets;
+import org.powerbot.game.api.wrappers.widget.Widget;
+import org.powerbot.game.api.wrappers.widget.WidgetChild;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
 
@@ -7,7 +10,7 @@ import org.powerbot.game.client.Client;
  * @author Timer
  */
 public class Skills {
-	public static final int[] XP_TABLE = {0, 83, 174, 276, 388, 512, 650, 801, 969, 1154, 1358, 1584, 1833, 2107,
+	public static final int[] XP_TABLE = {0, 0, 83, 174, 276, 388, 512, 650, 801, 969, 1154, 1358, 1584, 1833, 2107,
 			2411, 2746, 3115, 3523, 3973, 4470, 5018, 5624, 6291, 7028, 7842, 8740, 9730, 10824, 12031, 13363, 14833,
 			16456, 18247, 20224, 22406, 24815, 27473, 30408, 33648, 37224, 41171, 45529, 50339, 55649, 61512, 67983,
 			75127, 83014, 91721, 101333, 111945, 123660, 136594, 150872, 166636, 184040, 203254, 224466, 247886, 273742,
@@ -44,6 +47,33 @@ public class Skills {
 	public static final int SUMMONING = 23;
 	public static final int DUNGEONEERING = 24;
 
+	public static final int WIDGET = 320;
+	public static final int WIDGET_ATTACK = 1;
+	public static final int WIDGET_DEFENSE = 18;
+	public static final int WIDGET_STRENGTH = 4;
+	public static final int WIDGET_CONSTITUTION = 2;
+	public static final int WIDGET_RANGE = 35;
+	public static final int WIDGET_PRAYER = 53;
+	public static final int WIDGET_MAGIC = 66;
+	public static final int WIDGET_COOKING = 47;
+	public static final int WIDGET_WOODCUTTING = 78;
+	public static final int WIDGET_FLETCHING = 72;
+	public static final int WIDGET_FISHING = 29;
+	public static final int WIDGET_FIREMAKING = 65;
+	public static final int WIDGET_CRAFTING = 59;
+	public static final int WIDGET_SMITHING = 16;
+	public static final int WIDGET_MINING = 3;
+	public static final int WIDGET_HERBLORE = 23;
+	public static final int WIDGET_AGILITY = 10;
+	public static final int WIDGET_THIEVING = 41;
+	public static final int WIDGET_SLAYER = 85;
+	public static final int WIDGET_FARMING = 91;
+	public static final int WIDGET_RUNECRAFTING = 79;
+	public static final int WIDGET_HUNTER = 103;
+	public static final int WIDGET_CONSTRUCTION = 97;
+	public static final int WIDGET_SUMMONING = 109;
+	public static final int WIDGET_DUNGEONEERING = 115;
+
 	public static int[] getLevels() {
 		final Client client = Context.client();
 		return client.getSkillLevels();
@@ -78,19 +108,15 @@ public class Skills {
 	}
 
 	public static int getRealLevel(final int index) {
-		return Skills.getLevelAt(getExperiences()[index]);
+		final int level = Skills.getLevelAt(getExperience(index));
+		if (index != DUNGEONEERING && level > 99) {
+			return 99;
+		}
+		return level;
 	}
 
 	public static int getExperience(final int index) {
 		return getExperiences()[index];
-	}
-
-
-	public static int getExperienceAt(final int lvl) {
-		if (lvl > 120) {
-			return -1;
-		}
-		return Skills.XP_TABLE[lvl - 1];
 	}
 
 	public static int getExperienceRequired(final int lvl) {
@@ -101,12 +127,26 @@ public class Skills {
 	}
 
 	public static int getExperienceToLevel(final int index, final int endLvl) {
-		final int lvl = getRealLevel(index);
-		if (index == Skills.DUNGEONEERING && (lvl == 120 || endLvl > 120)) {
-			return 0;
-		} else if (lvl == 99 || endLvl > 99) {
-			return 0;
+		if (endLvl >= Skills.XP_TABLE.length) {
+			return -1;
 		}
-		return Skills.XP_TABLE[endLvl] - getExperience(index);
+		return getExperienceRequired(endLvl) - getExperience(index);
+	}
+
+	/**
+	 * The Widget of the Skills tab.
+	 */
+	public static Widget getWidget() {
+		return Widgets.get(WIDGET);
+	}
+
+	/**
+	 * Gets the skill widget child at given index.
+	 *
+	 * @param widgetIndex The index of the widget child.
+	 * @return the WidgetChild of the skill at the given index.
+	 */
+	public static WidgetChild getWidgetChild(final int widgetIndex) {
+		return Widgets.get(WIDGET, widgetIndex);
 	}
 }

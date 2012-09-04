@@ -4,9 +4,8 @@ import org.powerbot.game.api.methods.Calculations;
 import org.powerbot.game.api.wrappers.graphics.CapturedModel;
 import org.powerbot.game.api.wrappers.interactive.Character;
 import org.powerbot.game.client.Model;
-import org.powerbot.game.client.RSInteractableLocation;
-import org.powerbot.game.client.RSInteractableManager;
-import org.powerbot.game.client.RSInteractableRSInteractableManager;
+import org.powerbot.game.client.RSCharacter;
+import org.powerbot.game.client.RSInteractableData;
 
 public class CharacterModel extends CapturedModel {
 	private final Character character;
@@ -23,20 +22,20 @@ public class CharacterModel extends CapturedModel {
 
 	@Override
 	protected int getLocalX() {
-		final Object ref = character.get();
+		final RSCharacter ref = character.get();
 		if (ref != null) {
-			final RSInteractableLocation location = ((RSInteractableManager) ((RSInteractableRSInteractableManager) ref).getRSInteractableRSInteractableManager()).getData().getLocation();
-			return (int) location.getX();
+			final RSInteractableData data = (RSInteractableData) ref.getData();
+			return (int) data.getLocation().getX();
 		}
 		return -1;
 	}
 
 	@Override
 	protected int getLocalY() {
-		final Object ref = character.get();
+		final RSCharacter ref = character.get();
 		if (ref != null) {
-			final RSInteractableLocation location = ((RSInteractableManager) ((RSInteractableRSInteractableManager) ref).getRSInteractableRSInteractableManager()).getData().getLocation();
-			return (int) location.getY();
+			final RSInteractableData data = (RSInteractableData) ref.getData();
+			return (int) data.getLocation().getY();
 		}
 		return -1;
 	}

@@ -47,10 +47,10 @@ public class Multipliers {
 		GLOBAL_CAMPOSY = multipliers.get(303);
 		GLOBAL_CAMPOSZ = multipliers.get(304);
 		CHARACTER_HEIGHT = multipliers.get(305);
-		CHARACTER_HPRATIO = multipliers.get(306);
+		CHARACTER_HPRATIO = multipliers.get(311);
 		CHARACTER_INTERACTING = multipliers.get(307);
 		CHARACTER_ISMOVING = multipliers.get(308);
-		CHARACTER_LOOPCYCLESTATUS = multipliers.get(309);
+		CHARACTER_LOOPCYCLESTATUS = multipliers.get(312);
 		CHARACTER_ORIENTATION = multipliers.get(310);
 		GLOBAL_DESTX = multipliers.get(400);
 		GLOBAL_DESTY = multipliers.get(401);

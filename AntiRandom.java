@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.util.logging.Logger;
 
-import org.powerbot.concurrent.Task;
 import org.powerbot.concurrent.strategy.Condition;
 import org.powerbot.game.api.methods.input.Mouse;
 import org.powerbot.game.bot.Bot;
@@ -16,7 +15,7 @@ import org.powerbot.game.bot.event.listener.PaintListener;
 /**
  * @author Timer
  */
-public abstract class AntiRandom implements Condition, Task, PaintListener {
+public abstract class AntiRandom implements Condition, Runnable, PaintListener {
 	public final Logger log = Logger.getLogger(getClass().getName());
 	public Bot bot = null;
 

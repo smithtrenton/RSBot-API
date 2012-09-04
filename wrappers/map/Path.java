@@ -49,6 +49,13 @@ public abstract class Path {
 	public abstract boolean validate();
 
 	/**
+	 * Initiates this path if required.
+	 */
+	public boolean init() {
+		return true;
+	}
+
+	/**
 	 * Gets the next immediately available vertex in this path.
 	 *
 	 * @return The next walkable <code>Tile</code>.

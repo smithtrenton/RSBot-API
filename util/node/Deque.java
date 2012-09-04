@@ -1,25 +1,26 @@
 package org.powerbot.game.api.util.node;
 
 import org.powerbot.game.client.Node;
-import org.powerbot.game.client.NodeDequeTail;
+import org.powerbot.game.client.NodeDeque;
 
 /**
  * @param <N> Node type.
  * @author Timer
  */
+@SuppressWarnings("unchecked")
 public class Deque<N> {
-	private final Object nl;
+	private final NodeDeque nl;
 	private Node current;
 
-	public Deque(final Object nl) {
+	public Deque(NodeDeque nl) {
 		this.nl = nl;
 	}
 
 	public int size() {
 		int size = 0;
-		Node node = ((Node) ((NodeDequeTail) nl).getNodeDequeTail()).getPrevious();
+		Node node = ((Node) nl.getTail()).getPrevious();
 
-		while (node != ((NodeDequeTail) nl).getNodeDequeTail()) {
+		while (node != nl.getTail()) {
 			node = node.getPrevious();
 			size++;
 		}
@@ -27,11 +28,10 @@ public class Deque<N> {
 		return size;
 	}
 
-	@SuppressWarnings("unchecked")
 	public N getHead() {
-		final Node node = ((Node) ((NodeDequeTail) nl).getNodeDequeTail()).getNext();
+		Node node = ((Node) nl.getTail()).getNext();
 
-		if (node == ((NodeDequeTail) nl).getNodeDequeTail()) {
+		if (node == nl.getTail()) {
 			current = null;
 			return null;
 		}
@@ -40,11 +40,10 @@ public class Deque<N> {
 		return (N) node;
 	}
 
-	@SuppressWarnings("unchecked")
 	public N getTail() {
-		final Node node = ((Node) ((NodeDequeTail) nl).getNodeDequeTail()).getPrevious();
+		Node node = ((Node) nl.getTail()).getPrevious();
 
-		if (node == ((NodeDequeTail) nl).getNodeDequeTail()) {
+		if (node == nl.getTail()) {
 			current = null;
 			return null;
 		}
@@ -53,11 +52,10 @@ public class Deque<N> {
 		return (N) node;
 	}
 
-	@SuppressWarnings("unchecked")
 	public N getNext() {
 		Node node = current;
 
-		if (node == ((NodeDequeTail) nl).getNodeDequeTail()) {
+		if (node == nl.getTail()) {
 			current = null;
 			return null;
 		}

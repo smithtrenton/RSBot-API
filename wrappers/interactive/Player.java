@@ -4,51 +4,44 @@ import java.lang.ref.SoftReference;
 
 import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.RSInteractableInts;
+import org.powerbot.game.client.RSPlayer;
 import org.powerbot.game.client.RSPlayerComposite;
-import org.powerbot.game.client.RSPlayerCompositeEquipment;
-import org.powerbot.game.client.RSPlayerCompositeInts;
-import org.powerbot.game.client.RSPlayerCompositeNPCID;
-import org.powerbot.game.client.RSPlayerLevel;
-import org.powerbot.game.client.RSPlayerName;
-import org.powerbot.game.client.RSPlayerPrayerIcon;
-import org.powerbot.game.client.RSPlayerSkullIcon;
-import org.powerbot.game.client.RSPlayerTeam;
 
 /**
  * @author Timer
  */
 public class Player extends Character {
-	private final SoftReference<Object> p;
+	private final SoftReference<RSPlayer> p;
 	private final Multipliers multipliers;
 
-	public Player(final Object p) {
-		this.p = new SoftReference<Object>(p);
+	public Player(final RSPlayer p) {
+		this.p = new SoftReference<RSPlayer>(p);
 		this.multipliers = Context.multipliers();
 	}
 
 	public int getLevel() {
-		return ((RSPlayerLevel) ((RSInteractableInts) get()).getRSInteractableInts()).getRSPlayerLevel() * multipliers.PLAYER_LEVEL;
+		return get().getLevel() * multipliers.PLAYER_LEVEL;
 	}
 
 	public String getName() {
-		return (String) ((RSPlayerName) get()).getRSPlayerName();
+		return (String) get().getName();
 	}
 
 	public int getTeam() {
-		return ((RSPlayerTeam) ((RSInteractableInts) get()).getRSInteractableInts()).getRSPlayerTeam() * multipliers.PLAYER_TEAM;
+		return get().getTeam() * multipliers.PLAYER_TEAM;
 	}
 
 	public int getPrayerIcon() {
-		return ((RSPlayerPrayerIcon) ((RSInteractableInts) get()).getRSInteractableInts()).getRSPlayerPrayerIcon() * multipliers.PLAYER_PRAYERICON;
+		return get().getPrayerIcon() * multipliers.PLAYER_PRAYERICON;
 	}
 
 	public int getSkullIcon() {
-		return ((RSPlayerSkullIcon) ((RSInteractableInts) get()).getRSInteractableInts()).getRSPlayerSkullIcon() * multipliers.PLAYER_SKULLICON;
+		return get().getSkullIcon() * multipliers.PLAYER_SKULLICON;
 	}
 
 	public int getNpcId() {
-		return ((RSPlayerCompositeNPCID) ((RSPlayerCompositeInts) ((RSPlayerComposite) get()).getRSPlayerComposite()).getRSPlayerCompositeInts()).getRSPlayerCompositeNPCID() * multipliers.PLAYERCOMPOSITE_NPCID;
+		final RSPlayerComposite composite = (RSPlayerComposite) get().getComposite();
+		return composite == null ? -1 : composite.getNPCID() * multipliers.PLAYERCOMPOSITE_NPCID;
 	}
 
 	public int getId() {
@@ -56,11 +49,11 @@ public class Player extends Character {
 	}
 
 	public int[] getAppearance() {
-		final Object composite = ((RSPlayerComposite) get()).getRSPlayerComposite();
+		final RSPlayerComposite composite = (RSPlayerComposite) get().getComposite();
 		if (composite != null) {
-			final int[] appearance = (int[]) ((RSPlayerCompositeEquipment) composite).getRSPlayerCompositeEquipment();
+			final int[] appearance = ((int[]) composite.getEquipment()).clone();
 			for (int i = 0; i < appearance.length; i++) {
-				if ((appearance[i] & 0x40000000) != 0) {
+				if ((appearance[i] & 0x40000000) > 0) {
 					appearance[i] &= 0x3fffffff;
 				} else {
 					appearance[i] = -1;
@@ -71,7 +64,7 @@ public class Player extends Character {
 		return null;
 	}
 
-	public Object get() {
+	public RSPlayer get() {
 		return p.get();
 	}
 }

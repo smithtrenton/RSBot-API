@@ -1,199 +1,204 @@
 package org.powerbot.game.api.wrappers;
 
+import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.Arrays;
+import java.util.ArrayList;
+
+import org.powerbot.game.api.methods.Calculations;
+import org.powerbot.game.api.methods.interactive.Players;
 
 /**
- * @author Timer
+ * A polygonal area of tiles.
+ *
+ * @author Timer and Odell
  */
 public class Area {
-	public int npoints;
-	public int[] xpoints;
-	public int[] ypoints;
-	private int plane = -1;
+	protected final Polygon polygon;
+	protected int plane = -1;
+	private Tile[] tileArrayCache = null;
 
-	protected Rectangle bounds;
-	private static final int MIN_LENGTH = 4;
-
-	public Area() {
-		xpoints = new int[MIN_LENGTH];
-		ypoints = new int[MIN_LENGTH];
-	}
-
+	/**
+	 * Constructs a rectangular area.
+	 */
 	public Area(final Tile t1, final Tile t2) {
-		this(new Tile[]{
-				new Tile(Math.min(t1.x, t2.x), Math.min(t1.y, t2.y), t1.plane),
-				new Tile(Math.max(t1.x, t2.x), Math.min(t1.y, t2.y), t1.plane),
-				new Tile(Math.max(t1.x, t2.x), Math.max(t1.y, t2.y), t2.plane),
-				new Tile(Math.min(t1.x, t2.x), Math.max(t1.y, t2.y), t2.plane)
-		});
+		this(
+				new Tile(Math.min(t1.getX(), t2.getX()), Math.min(t1.getY(), t2.getY()), t1.getPlane()),
+				new Tile(Math.max(t1.getX(), t2.getX()), Math.min(t1.getY(), t2.getY()), t1.getPlane()),
+				new Tile(Math.max(t1.getX(), t2.getX()), Math.max(t1.getY(), t2.getY()), t2.getPlane()),
+				new Tile(Math.min(t1.getX(), t2.getX()), Math.max(t1.getY(), t2.getY()), t2.getPlane())
+		);
 	}
 
-	public Area(final Tile[] bounds) {
-		this();
+	/**
+	 * Constructs a polygonal area.
+	 */
+	public Area(final Tile... bounds) {
+		polygon = new Polygon();
 		for (final Tile tile : bounds) {
-			if (plane != -1 && tile.plane != plane) {
+			if (plane != -1 && tile.getPlane() != plane) {
 				throw new RuntimeException("area does not support 3d");
 			}
-			plane = tile.plane;
-			addTile(tile.x, tile.y);
+			plane = tile.getPlane();
+			addTile(tile);
 		}
 	}
 
-	public void reset() {
-		npoints = 0;
-		bounds = null;
+	public void translate(final int x, final int y) {
+		polygon.translate(x, y);
+		tileArrayCache = null;
 	}
 
-	public void invalidate() {
-		bounds = null;
-	}
-
-	public void translate(final int deltaX, final int deltaY) {
-		for (int i = 0; i < npoints; i++) {
-			xpoints[i] += deltaX;
-			ypoints[i] += deltaY;
-		}
-		if (bounds != null) {
-			bounds.translate(deltaX, deltaY);
-		}
-	}
-
-	public void addTile(final int x, final int y) {
-		if (npoints >= xpoints.length || npoints >= ypoints.length) {
-			int newLength = npoints * 2;
-			if (newLength < MIN_LENGTH) {
-				newLength = MIN_LENGTH;
-			} else if ((newLength & (newLength - 1)) != 0) {
-				newLength = Integer.highestOneBit(newLength);
-			}
-
-			xpoints = Arrays.copyOf(xpoints, newLength);
-			ypoints = Arrays.copyOf(ypoints, newLength);
-		}
-		xpoints[npoints] = x;
-		ypoints[npoints] = y;
-		npoints++;
-		if (bounds != null) {
-			updateBounds(x, y);
-		}
-	}
-
+	/**
+	 * @return a bounding rectangle of this area.
+	 */
 	public Rectangle getBounds() {
-		if (npoints == 0) {
-			return new Rectangle();
-		}
-		if (bounds == null) {
-			calculateBounds(xpoints, ypoints, npoints);
-		}
-		return bounds.getBounds();
+		return polygon.getBounds();
 	}
 
-	public boolean contains(final Tile tile) {
-		if (plane != -1 && tile.getPlane() != plane) {
-			throw new RuntimeException("area does not support 3d");
-		}
-		return contains(tile.getX(), tile.getY());
+	/**
+	 * @return the plane of this area.
+	 */
+	public int getPlane() {
+		return plane;
 	}
 
+	/**
+	 * Adds a Tile to this Area.
+	 *
+	 * @param t The Tile to add.
+	 */
+	public void addTile(final Tile t) {
+		addTile(t.getX(), t.getY());
+	}
+
+	/**
+	 * Adds a Tile to this Area.
+	 *
+	 * @param x The x coordinate.
+	 * @param y The y coordinate.
+	 */
+	public void addTile(final int x, final int y) {
+		polygon.addPoint(x, y);
+		tileArrayCache = null;
+	}
+
+	/**
+	 * Determines whether the given x,y pair is contained in the area.
+	 *
+	 * @param x The x coordinate.
+	 * @param y The y coordinate.
+	 * @return whether the area contains this pair.
+	 */
 	public boolean contains(final int x, final int y) {
-		return contains((double) x, (double) y);
+		return polygon.contains(x, y);
 	}
 
-	public boolean contains(double x, double y) {
-		if (npoints <= 2 || !getBounds().contains(x, y)) {
-			return false;
-		}
-		int hits = 0;
-
-		int lastx = xpoints[npoints - 1];
-		int lasty = ypoints[npoints - 1];
-		int curx, cury;
-
-		for (int i = 0; i < npoints; lastx = curx, lasty = cury, i++) {
-			curx = xpoints[i];
-			cury = ypoints[i];
-
-			if (cury == lasty) {
+	/**
+	 * Determines whether at least one of the given tiles is contained in this area.
+	 *
+	 * @param locatables The tiles to verify.
+	 * @return <tt>true</tt> if at least one of the tiles is contained, otherwise <tt>false</tt>.
+	 */
+	public boolean contains(final Locatable... locatables) {
+		for (final Locatable loc : locatables) {
+			if (loc == null) {
 				continue;
 			}
-
-			int leftx;
-			if (curx < lastx) {
-				if (x >= lastx) {
-					continue;
-				}
-				leftx = curx;
-			} else {
-				if (x >= curx) {
-					continue;
-				}
-				leftx = lastx;
-			}
-
-			double test1, test2;
-			if (cury < lasty) {
-				if (y < cury || y >= lasty) {
-					continue;
-				}
-				if (x < leftx) {
-					hits++;
-					continue;
-				}
-				test1 = x - curx;
-				test2 = y - cury;
-			} else {
-				if (y < lasty || y >= cury) {
-					continue;
-				}
-				if (x < leftx) {
-					hits++;
-					continue;
-				}
-				test1 = x - lastx;
-				test2 = y - lasty;
-			}
-
-			if (test1 < (test2 / (lasty - cury) * (lastx - curx))) {
-				hits++;
+			final Tile tile = loc.getLocation();
+			if (tile != null && plane == tile.getPlane() && contains(tile.getX(), tile.getY())) {
+				return true;
 			}
 		}
-
-		return ((hits & 1) != 0);
+		return false;
 	}
 
-	void calculateBounds(final int xpoints[], final int ypoints[], final int npoints) {
-		int boundsMinX = Integer.MAX_VALUE;
-		int boundsMinY = Integer.MAX_VALUE;
-		int boundsMaxX = Integer.MIN_VALUE;
-		int boundsMaxY = Integer.MIN_VALUE;
-
-		for (int i = 0; i < npoints; i++) {
-			final int x = xpoints[i];
-			boundsMinX = Math.min(boundsMinX, x);
-			boundsMaxX = Math.max(boundsMaxX, x);
-
-			final int y = ypoints[i];
-			boundsMinY = Math.min(boundsMinY, y);
-			boundsMaxY = Math.max(boundsMaxY, y);
+	/**
+	 * Determines whether all the given Locatables are contained in this area.
+	 *
+	 * @param locatables The Locatables to verify.
+	 * @return <tt>true</tt> if all Locatables are contained, otherwise <tt>false</tt>.
+	 */
+	public boolean containsAll(final Locatable... locatables) {
+		for (final Locatable loc : locatables) {
+			if (loc == null || !contains(loc)) {
+				return false;
+			}
 		}
-		bounds = new Rectangle(boundsMinX, boundsMinY, boundsMaxX - boundsMinX, boundsMaxY - boundsMinY);
+		return true;
 	}
 
-	void updateBounds(final int x, final int y) {
-		if (x < bounds.x) {
-			bounds.width = bounds.width + (bounds.x - x);
-			bounds.x = x;
-		} else {
-			bounds.width = Math.max(bounds.width, x - bounds.x);
-		}
+	/**
+	 * @return the averaged center tile of this area
+	 */
+	public Tile getCentralTile() {
+		return polygon.npoints > 0 ? new Tile((int) Math.round(avg(polygon.xpoints)), (int) Math.round(avg(polygon.ypoints)), plane) : null;
+	}
 
-		if (y < bounds.y) {
-			bounds.height = bounds.height + (bounds.y - y);
-			bounds.y = y;
-		} else {
-			bounds.height = Math.max(bounds.height, y - bounds.y);
+	/**
+	 * Finds the nearest tile in this area to the local player.
+	 *
+	 * @return the nearest tile contained in this area closest to the local player.
+	 */
+	public Tile getNearest() {
+		return getNearest(Players.getLocal());
+	}
+
+	/**
+	 * Finds the nearest tile in this area to the base Locatable.
+	 *
+	 * @param base The Locatable to measure the closest tile to.
+	 * @return the nearest tile contained in this area closest to the base tile.
+	 */
+	public Tile getNearest(final Locatable base) {
+		final Tile[] tiles = getTileArray();
+		Tile tile = null;
+		double dist = Double.MAX_VALUE, temp;
+		for (final Tile t : tiles) {
+			temp = Calculations.distance(base, t);
+			if (tile == null || temp < dist) {
+				dist = temp;
+				tile = t;
+			}
 		}
+		return tile;
+	}
+
+	/**
+	 * @return the tiles backing this Area.
+	 */
+	public Tile[] getBoundingTiles() {
+		final Tile[] bounding = new Tile[polygon.npoints];
+		for (int i = 0; i < polygon.npoints; i++) {
+			bounding[i] = new Tile(polygon.xpoints[i], polygon.ypoints[i], plane);
+		}
+		return bounding;
+	}
+
+	/**
+	 * @return an array of all the contained tiles in this area.
+	 */
+	public Tile[] getTileArray() {
+		if (tileArrayCache == null) {
+			final Rectangle bounds = getBounds();
+			final ArrayList<Tile> tiles = new ArrayList<Tile>(bounds.width * bounds.height);
+			final int xMax = bounds.x + bounds.width, yMax = bounds.y + bounds.height;
+			for (int x = bounds.x; x < xMax; x++) {
+				for (int y = bounds.y; y < yMax; y++) {
+					if (contains(x, y)) {
+						tiles.add(new Tile(x, y, plane));
+					}
+				}
+			}
+			tileArrayCache = tiles.toArray(new Tile[tiles.size()]);
+		}
+		return tileArrayCache;
+	}
+
+	private double avg(final int... nums) {
+		long total = 0;
+		for (int i : nums) {
+			total += (long) i;
+		}
+		return (double) total / (double) nums.length;
 	}
 }
-

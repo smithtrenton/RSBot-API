@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.powerbot.game.api.methods.Calculations;
 import org.powerbot.game.api.methods.Game;
 import org.powerbot.game.api.methods.Walking;
 import org.powerbot.game.api.methods.interactive.Players;
@@ -40,23 +41,34 @@ public class LocalPath extends Path {
 
 	@Override
 	public boolean validate() {
-		return getNext() != null && !Players.getLocal().getLocation().equals(getEnd());
+		return getNext() != null && Calculations.distanceTo(getEnd()) > Math.sqrt(2);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public Tile getNext() {
+	public boolean init() {
 		if (!Game.getMapBase().equals(base)) {
-			final int[][] flags = Walking.getCollisionFlags(Game.getPlane());
+			final int[][] flags = adjustCollisionFlags(Walking.getCollisionFlags(Game.getPlane()));
 			if (flags != null) {
 				base = Game.getMapBase();
 				final Tile start = Players.getLocal().getLocation();
 				final Tile[] tiles = findPath(start, end);
 				if (tiles == null) {
 					base = null;
-					return null;
+					return false;
 				}
 				tilePath = new TilePath(tiles);
 			}
+		}
+		return true;
+	}
+
+	@Override
+	public Tile getNext() {
+		if (!init()) {
+			return null;
 		}
 		return tilePath.getNext();
 	}
@@ -266,5 +278,21 @@ public class LocalPath extends Path {
 		public Tile get(final int baseX, final int baseY) {
 			return new Tile(x + baseX, y + baseY, z);
 		}
+	}
+
+	private int[][] adjustCollisionFlags(final int[][] flags) {
+		final int lx = flags.length - 1;
+		final int lx_m = lx - 5;
+		for (int x = 0; x <= lx; x++) {
+			final int ly = flags[x].length - 1;
+			final int ly_m = ly - 5;
+			for (int y = 0; y <= ly; y++) {
+				if (x <= 5 || y <= 5 || x >= lx_m || y >= ly_m) {
+					flags[x][y] = -1;
+				}
+			}
+		}
+
+		return flags;
 	}
 }

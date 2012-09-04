@@ -75,7 +75,7 @@ public class Tile implements Entity, Locatable, Identifiable {
 	}
 
 	public Tile randomize(final int left, final int right, final int down, final int up) {
-		return new Tile(this.x + Random.nextInt(left, right + 1), this.y + Random.nextInt(down, up + 1), plane);
+		return derive(Random.nextInt(left, right + 1), Random.nextInt(down, up + 1));
 	}
 
 	public Tile randomize(final int x, final int y) {
@@ -89,7 +89,7 @@ public class Tile implements Entity, Locatable, Identifiable {
 	public boolean validate() {
 		final int x = this.x - Game.getBaseX();
 		final int y = this.y - Game.getBaseY();
-		return x > 0 && x < 104 && y > 0 && y < 104;
+		return x >= 0 && x < 104 && y >= 0 && y < 104;
 	}
 
 	public Point getMapPoint() {
@@ -173,7 +173,15 @@ public class Tile implements Entity, Locatable, Identifiable {
 	}
 
 	public boolean canReach() {
-		return Walking.findPath(this).validate();
+		return Walking.findPath(this).init();
+	}
+
+	public double distanceTo() {
+		return Calculations.distanceTo(this);
+	}
+
+	public double distance(final Locatable locatable) {
+		return Calculations.distance(this, locatable);
 	}
 
 	public Point getPoint(final double xOff, final double yOff, final int height) {
@@ -206,7 +214,7 @@ public class Tile implements Entity, Locatable, Identifiable {
 
 	@Override
 	public String toString() {
-		return new StringBuilder("(").append(x).append(", ").append(y).append(')').toString();
+		return "(" + x + ", " + y + ", " + plane + ')';
 	}
 
 	@Override

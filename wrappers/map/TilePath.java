@@ -44,7 +44,7 @@ public class TilePath extends Path {
 		}
 		if (options != null && options.contains(TraversalOption.SPACE_ACTIONS)) {
 			final Tile dest = Walking.getDestination();
-			if (dest != null && Players.getLocal().isMoving() && Calculations.distanceTo(dest) > 5 && Calculations.distance(next, dest) < 7) {
+			if (dest.getX() != -1 && Players.getLocal().isMoving() && Calculations.distanceTo(dest) > 5 && Calculations.distance(next, dest) < 7) {
 				return true;
 			}
 		}
@@ -56,7 +56,7 @@ public class TilePath extends Path {
 	 */
 	@Override
 	public boolean validate() {
-		return tiles.length > 0 && getNext() != null && !Players.getLocal().getLocation().equals(getEnd());
+		return tiles.length > 0 && getNext() != null && Calculations.distanceTo(getEnd()) > Math.sqrt(2);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class TilePath extends Path {
 	public Tile getNext() {
 		for (int i = tiles.length - 1; i >= 0; --i) {
 			final Tile dest = Walking.getDestination();
-			if (tiles[i].isOnMap() && (tiles[i].canReach() || (i != 0 && (dest != null ? Calculations.distance(dest, tiles[i - 1]) < 3 : Calculations.distanceTo(tiles[i - 1]) < 7)))) {
+			if (tiles[i].isOnMap() && (tiles[i].canReach() || (i != 0 && (dest.getX() != -1 ? Calculations.distance(dest, tiles[i - 1]) < 3 : Calculations.distanceTo(tiles[i - 1]) < 7)))) {
 				return tiles[i];
 			}
 		}

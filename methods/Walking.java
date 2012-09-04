@@ -5,6 +5,8 @@ import java.awt.Point;
 import org.powerbot.game.api.methods.input.Mouse;
 import org.powerbot.game.api.methods.interactive.Players;
 import org.powerbot.game.api.util.Filter;
+import org.powerbot.game.api.util.Time;
+import org.powerbot.game.api.util.Timer;
 import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.api.wrappers.Locatable;
 import org.powerbot.game.api.wrappers.Tile;
@@ -13,14 +15,11 @@ import org.powerbot.game.api.wrappers.map.LocalPath;
 import org.powerbot.game.api.wrappers.map.TilePath;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
-import org.powerbot.game.client.RSGroundDataBlocks;
-import org.powerbot.game.client.RSGroundDataInts;
-import org.powerbot.game.client.RSGroundDataX;
-import org.powerbot.game.client.RSGroundDataY;
-import org.powerbot.game.client.RSInfoGroundData;
+import org.powerbot.game.client.RSGroundData;
+import org.powerbot.game.client.RSInfo;
 
 /**
- * A utility for the manipulation of information required for waking.
+ * A utility for the manipulation of information required for walking.
  *
  * @author Timer
  */
@@ -49,10 +48,10 @@ public class Walking {
 	 * @return The <code>Tile</code> of the offset location (different than map base!).
 	 */
 	public static Tile getCollisionOffset(final int plane) {
-		final Client client = Context.client();
 		final Multipliers multipliers = Context.multipliers();
-		final Object groundDataInts = ((RSGroundDataInts) ((Object[]) ((RSInfoGroundData) client.getRSGroundInfo()).getRSInfoGroundData())[plane]).getRSGroundDataInts();
-		return new Tile(((RSGroundDataX) groundDataInts).getRSGroundDataX() * multipliers.GROUNDDATA_X, ((RSGroundDataY) groundDataInts).getRSGroundDataY() * multipliers.GROUNDDATA_Y, plane);
+		final RSInfo info = (RSInfo) Context.client().getRSGroundInfo();
+		final RSGroundData data = ((RSGroundData[]) info.getGroundData())[plane];
+		return new Tile(data.getX() * multipliers.GROUNDDATA_X, data.getY() * multipliers.GROUNDDATA_Y, plane);
 	}
 
 	/**
@@ -60,17 +59,22 @@ public class Walking {
 	 * @return The collision flags of the current map block.
 	 */
 	public static int[][] getCollisionFlags(final int plane) {
-		return (int[][]) ((RSGroundDataBlocks) ((Object[]) ((RSInfoGroundData) Context.client().getRSGroundInfo()).getRSInfoGroundData())[plane]).getRSGroundDataBlocks();
+		final RSInfo info = (RSInfo) Context.client().getRSGroundInfo();
+		final RSGroundData data = ((RSGroundData[]) info.getGroundData())[plane];
+		return (int[][]) data.getBlocks();
 	}
 
 	public static void setRun(final boolean enabled) {
-		if (isRunEnabled() != enabled) {
-			Widgets.get(WIDGET, WIDGET_RUN).click(true);
+		if (isRunEnabled() != enabled && Widgets.get(WIDGET, WIDGET_RUN).click(true)) {
+			final Timer t = new Timer(1800);
+			while (t.isRunning() && isRunEnabled() != enabled) {
+				Time.sleep(5);
+			}
 		}
 	}
 
 	public static boolean isRunEnabled() {
-		return Settings.get(Settings.BOOLEAN_RUN_ENABLED) == 1;
+		return Settings.get(Settings.SETTING_RUN_ENABLED) == 1;
 	}
 
 	public static int getEnergy() {
@@ -85,21 +89,18 @@ public class Walking {
 		return new TilePath(path);
 	}
 
-	public static LocalPath findPath(final Tile end) {
-		return new LocalPath(end);
-	}
-
-	public static boolean walk(final Locatable mobile) {
-		return walk(mobile.getLocation());
+	public static LocalPath findPath(final Locatable mobile) {
+		return new LocalPath(mobile.getLocation());
 	}
 
 	/**
 	 * Clicks a tile on the minimap.
 	 *
-	 * @param stepDirection The tile to click (global).
-	 * @return <tt>true</tt> if the tile was clicked; otherwise <tt>false</tt>.
+	 * @param mobile The mobile to click (global).
+	 * @return <tt>true</tt> if the mobile was clicked; otherwise <tt>false</tt>.
 	 */
-	public static boolean walk(Tile stepDirection) {
+	public static boolean walk(final Locatable mobile) {
+		Tile stepDirection = mobile.getLocation();
 		if (!stepDirection.isOnMap()) {
 			stepDirection = getClosestOnMap(stepDirection);
 		}
@@ -119,7 +120,7 @@ public class Walking {
 					}
 
 					public boolean validate() {
-						return Calculations.distance(tile, Players.getLocal().getLocation()) <= 17;
+						return tile.isOnMap();
 					}
 				},
 				new Filter<Point>() {
@@ -131,12 +132,13 @@ public class Walking {
 		);
 	}
 
-	public static Tile getClosestOnMap(final Tile tile) {
+	public static Tile getClosestOnMap(Tile tile) {
 		if (tile.isOnMap()) {
 			return tile;
 		}
 
 		final Tile location = Players.getLocal().getLocation();
+		tile = tile.derive(-location.getX(), -location.getY());
 		final double angle = Math.atan2(tile.getY(), tile.getX());
 		return new Tile(
 				location.getX() + (int) (16d * Math.cos(angle)),

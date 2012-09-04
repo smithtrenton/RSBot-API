@@ -5,18 +5,18 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-import org.powerbot.concurrent.TaskContainer;
+import org.powerbot.game.api.methods.Calculations;
 import org.powerbot.game.api.util.Filter;
 import org.powerbot.game.api.util.Random;
 import org.powerbot.game.api.util.Time;
 import org.powerbot.game.api.wrappers.ViewportEntity;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.bot.input.MouseManipulator;
+import org.powerbot.game.bot.handler.input.MouseExecutor;
+import org.powerbot.game.bot.handler.input.util.MouseNode;
 import org.powerbot.game.client.Client;
 
 /**
@@ -25,6 +25,13 @@ import org.powerbot.game.client.Client;
  * @author Timer
  */
 public class Mouse {
+	public static final int PRIORITY_VERY_LOW = 125;
+	public static final int PRIORITY_LOW = 250;
+	public static final int PRIORITY_DEFAULT = 500;
+	public static final int PRIORITY_HIGH = 750;
+	public static final int PRIORITY_VERY_HIGH = 1000;
+	public static final int PRIORITY_REAL_TIME = Integer.MAX_VALUE;
+
 	private static final Map<ThreadGroup, Integer> dragLengths = new HashMap<ThreadGroup, Integer>();
 	private static final Map<ThreadGroup, Integer> sides = new HashMap<ThreadGroup, Integer>();
 
@@ -94,19 +101,47 @@ public class Mouse {
 	}
 
 	/**
+	 * Scrolls the mouse up or down by 1 unit.
+	 *
+	 * @param down <tt>true</tt> to scroll down, <tt>false</tt> to scroll up.
+	 */
+	public static void scroll(final boolean down) {
+		scroll(down, 0);
+	}
+
+	/**
+	 * Scrolls the mouse up or down with delay.
+	 *
+	 * @param down  <tt>true</tt> to scroll down, <tt>false</tt> to scroll up.
+	 * @param delay Amount of milliseconds to wait with scrolling
+	 */
+	public static void scroll(final boolean down, final int delay) {
+		final org.powerbot.game.client.input.Mouse mouse = getMouse();
+		final Component target = getTarget();
+		if (mouse == null || target == null) {
+			return;
+		}
+
+		mouse.sendEvent(
+				new MouseWheelEvent(target, MouseWheelEvent.MOUSE_WHEEL, System.currentTimeMillis() + delay, 0, getX(), getY(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, down ? 3 : -3, 3)
+		);
+	}
+
+	/**
 	 * Clicks the mouse at it's current position.
 	 *
 	 * @param left <tt>true</tt> to click left; otherwise <tt>false</tt> to click right.
 	 */
-	public static void click(final boolean left) {
+	public static boolean click(final boolean left) {
 		if (!isPresent()) {
-			return;
+			return false;
 		}
 		final int x = getX(), y = getY();
 		pressMouse(x, y, left);
 		Time.sleep(Random.nextInt(50, 150));
 		releaseMouse(x, y, left);
 		Time.sleep(Random.nextInt(50, 80));
+		return true;
 	}
 
 	public static boolean click(final Point p, final boolean left) {
@@ -157,9 +192,7 @@ public class Mouse {
 	 * @param randomY The random y gaussian distribution.
 	 */
 	public static void hop(int x, int y, final int randomX, final int randomY) {
-		if (isOnCanvas(x, y)) {
-			moveMouse(x + Random.nextGaussian(-randomX, randomX, randomX), y + Random.nextGaussian(-randomY, randomY, randomY));
-		}
+		moveMouse(x + Random.nextGaussian(-randomX, randomX, randomX), y + Random.nextGaussian(-randomY, randomY, randomY));
 	}
 
 	/**
@@ -210,35 +243,25 @@ public class Mouse {
 	 * @return <tt>true</tt> if we reached this position; otherwise <tt>false</tt>.
 	 */
 	public static boolean move(int x, int y, final int randomX, final int randomY) {
-		final TaskContainer container = Context.get().getContainer();
-		final MouseManipulator task = create(x, y, randomX, randomY, false, false);
-		final Future<?> future = container.submit(task);
-		if (future != null) {
-			try {
-				future.get();
-			} catch (final InterruptedException ignored) {
-			} catch (final ExecutionException ignored) {
-			}
+		final MouseExecutor executor = Context.get().getExecutor();
+		final MouseNode node = create(x, y, randomX, randomY, false, false);
+		while (node.getTimer().isRunning() && node.processable()) {
+			executor.step(node);
 		}
-		return task.isAccepted();
+		return node.isCompleted();
 	}
 
 	public static boolean move(final Point p, final int randomX, final int randomY) {
 		return move(p.x, p.y, randomX, randomY);
 	}
 
-	public static boolean apply(final ViewportEntity locatable, final Filter<Point> filter) {
-		final TaskContainer container = Context.get().getContainer();
-		final MouseManipulator task = new MouseManipulator(locatable, filter);
-		final Future<?> future = container.submit(task);
-		if (future != null) {
-			try {
-				future.get();
-			} catch (final InterruptedException ignored) {
-			} catch (final ExecutionException ignored) {
-			}
+	public static boolean apply(final ViewportEntity viewportEntity, final Filter<Point> filter) {
+		final MouseExecutor executor = Context.get().getExecutor();
+		final MouseNode node = new MouseNode(viewportEntity, filter);
+		while (node.getTimer().isRunning() && node.processable()) {
+			executor.step(node);
 		}
-		return task.isAccepted();
+		return node.isCompleted();
 	}
 
 	private static void pressMouse(final int x, final int y, final boolean left) {
@@ -269,31 +292,31 @@ public class Mouse {
 		}
 
 		if (!mouse.isPresent()) {
-			if (isOnCanvas(x, y)) {
+			if (Calculations.isOnScreen(x, y)) {
 				mouse.sendEvent(
 						new MouseEvent(target, MouseEvent.MOUSE_ENTERED, System.currentTimeMillis(), 0, x, y, 0, false)
 				);
+			} else {
+				mouse.update(x, y);
 			}
-		} else if (!isOnCanvas(x, y)) {
+		} else if (!Calculations.isOnScreen(x, y)) {
 			mouse.sendEvent(
 					new MouseEvent(target, MouseEvent.MOUSE_EXITED, System.currentTimeMillis(), 0, x, y, 0, false)
 			);
 			final Client client = Context.client();
 			final Canvas canvas;
 			if (client != null && (canvas = client.getCanvas()) != null) {
-				final int w = canvas.getWidth(), h = canvas.getHeight(), d = 50;
-				if (x < d) {
-					if (y < d) {
-						putSide(4);
-					} else if (y > h + d) {
-						putSide(2);
-					} else {
-						putSide(1);
-					}
-				} else if (x > w) {
-					putSide(3);
+				final int w = canvas.getWidth(), h = canvas.getHeight();
+				if (x <= 0) {
+					Mouse.putSide(1);
+				} else if (x >= w) {
+					Mouse.putSide(3);
+				} else if (y <= 0) {
+					Mouse.putSide(4);
+				} else if (y >= h) {
+					Mouse.putSide(2);
 				} else {
-					putSide(Random.nextInt(1, 5));
+					Mouse.putSide(Random.nextInt(0, 5));
 				}
 			}
 		} else if (!mouse.isPressed()) {
@@ -370,23 +393,12 @@ public class Mouse {
 		return integer;
 	}
 
-	public static void putSide(final int length) {
-		sides.put(Thread.currentThread().getThreadGroup(), length);
+	public static void putSide(final int side) {
+		sides.put(Thread.currentThread().getThreadGroup(), side);
 	}
 
-	/**
-	 * @param x The x location to check.
-	 * @param y The y location to check.
-	 * @return <tt>true</tt> if the given point is on the canvas; otherwise <tt>false</tt>.
-	 */
-	public static boolean isOnCanvas(final int x, final int y) {
-		final Context context = Context.get();
-		final Canvas canvas;
-		return !(context.getClient() == null || (canvas = context.getClient().getCanvas()) == null) && x >= 0 && x < canvas.getWidth() && y >= 0 && y < canvas.getHeight();
-	}
-
-	private static MouseManipulator create(final int x, final int y, final int randomX, final int randomY, final boolean click, final boolean left) {
-		return new MouseManipulator(
+	private static MouseNode create(final int x, final int y, final int randomX, final int randomY, final boolean click, final boolean left) {
+		return new MouseNode(
 				new ViewportEntity() {
 					private final Rectangle area = new Rectangle(x - randomX, y - randomY, randomX * 2, randomY * 2);
 
@@ -403,7 +415,7 @@ public class Mouse {
 					}
 
 					public boolean validate() {
-						return Mouse.isOnCanvas(x, y);
+						return Calculations.isOnScreen(x, y);
 					}
 				},
 				new Filter<Point>() {

@@ -9,6 +9,7 @@ import org.powerbot.game.api.wrappers.RegionOffset;
 import org.powerbot.game.api.wrappers.interactive.Player;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
+import org.powerbot.game.client.RSPlayer;
 
 /**
  * A utility for the access of Players.
@@ -40,7 +41,7 @@ public class Players {
 		final Set<Player> players = new HashSet<Player>();
 		for (final int index : indices) {
 			if (index != 0 && playerArray[index] != null) {
-				final Player player = new Player(playerArray[index]);
+				final Player player = new Player((RSPlayer) playerArray[index]);
 				if (filter.accept(player)) {
 					players.add(player);
 				}
@@ -52,7 +53,7 @@ public class Players {
 	public static Player getNearest(final Filter<Player> filter) {
 		final Client client = Context.client();
 		final int[] indices = client.getRSPlayerIndexArray();
-		final Object[] playerArray = client.getRSPlayerArray();
+		final RSPlayer[] playerArray = (RSPlayer[]) client.getRSPlayerArray();
 		Player player = null;
 		double distance = Double.MAX_VALUE;
 		final RegionOffset position = Players.getLocal().getRegionOffset();
@@ -75,6 +76,6 @@ public class Players {
 	 * @return The client's local <code>Player</code>.
 	 */
 	public static Player getLocal() {
-		return new Player(Context.client().getMyRSPlayer());
+		return new Player((RSPlayer) Context.client().getMyRSPlayer());
 	}
 }

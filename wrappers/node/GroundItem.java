@@ -7,6 +7,7 @@ import java.awt.Polygon;
 import org.powerbot.game.api.methods.Calculations;
 import org.powerbot.game.api.methods.Game;
 import org.powerbot.game.api.methods.input.Mouse;
+import org.powerbot.game.api.methods.node.GroundItems;
 import org.powerbot.game.api.methods.node.Menu;
 import org.powerbot.game.api.util.Filter;
 import org.powerbot.game.api.util.Random;
@@ -47,11 +48,16 @@ public class GroundItem implements Entity, Locatable, Identifiable {
 	}
 
 	public boolean validate() {
-		return tile.validate() && groundItem.getId() != -1;
+		return tile.validate() && getId() != -1 && GroundItems.getNearest(new Filter<GroundItem>() {
+			@Override
+			public boolean accept(final GroundItem groundItem) {
+				return groundItem.getId() == getId() && groundItem.getLocation().equals(getLocation());
+			}
+		}) != null;
 	}
 
 	public Point getCentralPoint() {
-		return tile.getCentralPoint();
+		return tile.getPoint(0.5d, 0.5d, 0);
 	}
 
 	public Point getNextViewportPoint() {
@@ -81,7 +87,7 @@ public class GroundItem implements Entity, Locatable, Identifiable {
 	public boolean click(final boolean left) {
 		return Mouse.apply(this, new Filter<Point>() {
 			public boolean accept(final Point point) {
-				Mouse.click(true);
+				Mouse.click(left);
 				return true;
 			}
 		});
