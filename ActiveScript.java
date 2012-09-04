@@ -77,7 +77,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		track("");
 	}
 
-	protected final void provide(final Strategy strategy) {
+	public final void provide(final Strategy strategy) {
 		executor.append(strategy);
 
 		if (!listeners.contains(strategy)) {
@@ -88,20 +88,20 @@ public abstract class ActiveScript implements EventListener, Processor {
 		}
 	}
 
-	protected final void provide(final StrategyGroup group) {
+	public final void provide(final StrategyGroup group) {
 		for (final Strategy strategy : group) {
 			provide(strategy);
 		}
 	}
 
-	protected final void revoke(final Strategy strategy) {
+	public final void revoke(final Strategy strategy) {
 		executor.omit(strategy);
 
 		listeners.remove(strategy);
 		eventManager.remove(strategy);
 	}
 
-	protected final void revoke(final StrategyGroup group) {
+	public final void revoke(final StrategyGroup group) {
 		for (final Strategy strategy : group) {
 			revoke(strategy);
 		}
@@ -133,7 +133,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		}
 	}
 
-	protected final void setIterationDelay(final int milliseconds) {
+	public final void setIterationDelay(final int milliseconds) {
 		executor.setIterationSleep(milliseconds);
 	}
 
@@ -239,7 +239,7 @@ public abstract class ActiveScript implements EventListener, Processor {
 		track("kill");
 	}
 
-	protected final DaemonState getState() {
+	public final DaemonState getState() {
 		return executor.state;
 	}
 
