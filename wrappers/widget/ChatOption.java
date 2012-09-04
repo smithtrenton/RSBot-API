@@ -38,8 +38,8 @@ public class ChatOption {
 	}
 
 	/**
-	 * @param valid   <tt>true</tt> if the result must valid.
-	 * @param visible <tt>true</tt> if the result must be visible.
+	 * @param isValid   <tt>true</tt> if the result must valid.
+	 * @param isVisible <tt>true</tt> if the result must be visible.
 	 * @return <tt>true</tt> if and only if the Widget including all its children match the criteria, otherwise <tt>false</tt>.
 	 */
 	public boolean revalidate(final boolean isValid, final boolean isVisible) {
