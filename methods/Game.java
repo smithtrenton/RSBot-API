@@ -3,15 +3,15 @@ package org.powerbot.game.api.methods;
 import java.awt.Canvas;
 import java.awt.Dimension;
 
+import org.powerbot.game.api.util.Time;
 import org.powerbot.game.api.util.internal.Constants;
 import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.api.wrappers.Tile;
+import org.powerbot.game.api.wrappers.widget.WidgetChild;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.BaseInfoInts;
-import org.powerbot.game.client.BaseInfoX;
-import org.powerbot.game.client.BaseInfoY;
+import org.powerbot.game.client.BaseInfo;
 import org.powerbot.game.client.Client;
-import org.powerbot.game.client.RSInfoBaseInfo;
+import org.powerbot.game.client.RSInfo;
 
 /**
  * A utility for the manipulation of the game.
@@ -80,7 +80,7 @@ public class Game {
 	public static int getBaseX() {
 		final Client client = Context.client();
 		final Multipliers multipliers = Context.multipliers();
-		return (((BaseInfoX) ((BaseInfoInts) ((RSInfoBaseInfo) client.getRSGroundInfo()).getRSInfoBaseInfo()).getBaseInfoInts()).getBaseInfoX() * multipliers.BASEDATA_X) >> 8;
+		return ((BaseInfo) ((RSInfo) client.getRSGroundInfo()).getBaseInfo()).getX() * multipliers.BASEDATA_X >> 8;
 	}
 
 	/**
@@ -89,16 +89,16 @@ public class Game {
 	public static int getBaseY() {
 		final Client client = Context.client();
 		final Multipliers multipliers = Context.multipliers();
-		return (((BaseInfoY) ((BaseInfoInts) ((RSInfoBaseInfo) client.getRSGroundInfo()).getRSInfoBaseInfo()).getBaseInfoInts()).getBaseInfoY() * multipliers.BASEDATA_Y) >> 8;
+		return ((BaseInfo) ((RSInfo) client.getRSGroundInfo()).getBaseInfo()).getY() * multipliers.BASEDATA_Y >> 8;
 	}
 
 	public static Tile getMapBase() {
 		final Client client = Context.client();
 		final Multipliers multipliers = Context.multipliers();
-		final Object infoInts = ((BaseInfoInts) ((RSInfoBaseInfo) client.getRSGroundInfo()).getRSInfoBaseInfo()).getBaseInfoInts();
+		final BaseInfo infoInts = (BaseInfo) ((RSInfo) client.getRSGroundInfo()).getBaseInfo();
 		return new Tile(
-				(((BaseInfoX) infoInts).getBaseInfoX() * multipliers.BASEDATA_X) >> 8,
-				(((BaseInfoY) infoInts).getBaseInfoY() * multipliers.BASEDATA_Y) >> 8,
+				(infoInts.getX() * multipliers.BASEDATA_X) >> 8,
+				(infoInts.getY() * multipliers.BASEDATA_Y) >> 8,
 				Game.getPlane()
 		);
 	}
@@ -112,5 +112,26 @@ public class Game {
 	public static Dimension getDimensions() {
 		final Canvas canvas = Context.client().getCanvas();
 		return new Dimension(canvas.getWidth(), canvas.getHeight());
+	}
+
+	/**
+	 * @param lobby <tt>true</tt> if the method should log out to the lobby, <tt>false</tt> if the method should fully log out.
+	 * @return <tt>true</tt> if and only if the client's state equals the state you want it to be in.
+	 */
+	public static boolean logout(final boolean lobby) {
+		if (Game.getClientState() == Game.INDEX_LOBBY_SCREEN && lobby || Game.getClientState() == Game.INDEX_LOGIN_SCREEN && !lobby) {
+			return true;
+		}
+		if (Tabs.LOGOUT.open()) {
+			final WidgetChild w = Widgets.get(182, lobby ? 6 : 13);
+			if (w != null && w.validate() && w.interact("Exit to " + (lobby ? "Lobby" : "Login"))) {
+				for (int i = 0; i < 10; i++, Time.sleep(100, 200)) {
+					if (Game.getClientState() == Game.INDEX_LOBBY_SCREEN && lobby || Game.getClientState() == Game.INDEX_LOGIN_SCREEN && !lobby) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 }

@@ -17,6 +17,10 @@ import org.powerbot.game.client.Client;
 public class WidgetComposite {
 	private static final Map<ThreadGroup, Record> cache = new HashMap<ThreadGroup, Record>();
 
+	public static void clear(final ThreadGroup threadGroup) {
+		cache.remove(threadGroup);
+	}
+
 	public static WidgetChild getCompass() {
 		final Record record = get();
 		update(record);

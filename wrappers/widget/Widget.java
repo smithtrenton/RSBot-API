@@ -8,10 +8,8 @@ import org.powerbot.game.api.util.internal.Multipliers;
 import org.powerbot.game.api.wrappers.Identifiable;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
-import org.powerbot.game.client.RSInterfaceBaseComponents;
-import org.powerbot.game.client.RSInterfaceBoundsArrayIndex;
-import org.powerbot.game.client.RSInterfaceInts;
-import org.powerbot.game.client.RSInterfaceText;
+import org.powerbot.game.client.RSInterface;
+import org.powerbot.game.client.RSInterfaceBase;
 
 /**
  * @author Timer
@@ -64,7 +62,7 @@ public class Widget implements Identifiable {
 		if (children != null) {
 			for (final Object child : children) {
 				String string;
-				if (child != null && (string = ((String) ((RSInterfaceText) child).getRSInterfaceText())) != null) {
+				if (child != null && (string = (String) ((RSInterface) child).getText()) != null) {
 					sb.append(string);
 					sb.append("\n");
 				}
@@ -91,7 +89,7 @@ public class Widget implements Identifiable {
 		if (children != null) {
 			for (final Object child : children) {
 				if (child != null) {
-					final int index = ((RSInterfaceBoundsArrayIndex) ((RSInterfaceInts) child).getRSInterfaceInts()).getRSInterfaceBoundsArrayIndex() * multipliers.INTERFACE_BOUNDSARRAYINDEX;
+					final int index = ((RSInterface) child).getBoundsArrayIndex() * multipliers.INTERFACE_BOUNDSARRAYINDEX;
 					final Rectangle[] boundsArray = client.getRSInterfaceBoundsArray();
 					if (index > 0 && index < boundsArray.length) {
 						return boundsArray[index].getLocation();
@@ -122,7 +120,7 @@ public class Widget implements Identifiable {
 
 	public WidgetChild getChild(final int index) {
 		synchronized (CACHE_LOCK) {
-			final Object[] children = getChildrenInternal();
+			final RSInterface[] children = getChildrenInternal();
 			final int ensureLen = Math.max(children != null ? children.length : 0, index + 1);
 			if (childCache.length < ensureLen) {
 				final int prevLen = childCache.length;
@@ -152,14 +150,15 @@ public class Widget implements Identifiable {
 		return getIndex();
 	}
 
-	Object[] getChildrenInternal() {
+	RSInterface[] getChildrenInternal() {
 		final Client client = Context.client();
 		if (client == null) {
 			return null;
 		}
 		final Object[] inters = client.getRSInterfaceCache();
 		if (inters != null && index < inters.length && inters[index] != null) {
-			return (Object[]) ((RSInterfaceBaseComponents) inters[index]).getRSInterfaceBaseComponents();
+			final RSInterfaceBase base = (RSInterfaceBase) inters[index];
+			return (RSInterface[]) base.getComponents();
 		}
 		return null;
 	}

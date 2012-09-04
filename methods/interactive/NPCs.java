@@ -10,10 +10,11 @@ import org.powerbot.game.api.wrappers.RegionOffset;
 import org.powerbot.game.api.wrappers.interactive.NPC;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
+import org.powerbot.game.client.HashTable;
 import org.powerbot.game.client.Node;
-import org.powerbot.game.client.RSNPCHolder;
+import org.powerbot.game.client.RSNPC;
 import org.powerbot.game.client.RSNPCNode;
-import org.powerbot.game.client.RSNPCNodeHolder;
+import org.powerbot.game.client.SoftReference;
 
 /**
  * A utility for the access of Npcs.
@@ -34,6 +35,10 @@ public class NPCs {
 		return getLoaded(ALL_FILTER);
 	}
 
+	/**
+	 * @param ids Npc will be accepted if having one of these Ids.
+	 * @return An array of the currently loaded NPCs in the game that have one of the provided Ids.
+	 */
 	public static NPC[] getLoaded(final int... ids) {
 		return getLoaded(new Filter<NPC>() {
 			public boolean accept(final NPC npc) {
@@ -56,9 +61,14 @@ public class NPCs {
 		final int[] indices = client.getRSNPCIndexArray();
 		final Set<NPC> npcs = new HashSet<NPC>();
 		for (final int index : indices) {
-			final Node node = Nodes.lookup(client.getRSNPCNC(), index);
-			if (node != null && node instanceof RSNPCNode) {
-				final NPC npc = new NPC(((RSNPCHolder) ((RSNPCNodeHolder) ((RSNPCNode) node).getData()).getRSNPCNodeHolder()).getRSNPC());
+			final Node node = Nodes.lookup((HashTable) client.getRSNPCNC(), index);
+			if (node != null) {
+				NPC npc = null;
+				if (node instanceof RSNPCNode) {
+					npc = new NPC((RSNPC) ((RSNPCNode) node).getRSNPC());
+				} else if (node instanceof SoftReference) {
+					npc = new NPC((RSNPC) ((SoftReference) node).get().get());
+				}
 				if (filter.accept(npc)) {
 					npcs.add(npc);
 				}
@@ -67,6 +77,10 @@ public class NPCs {
 		return npcs.toArray(new NPC[npcs.size()]);
 	}
 
+	/**
+	 * @param ids Npc will be accepted if having one of these Ids.
+	 * @return The nearest Npc with one of these Ids if any present, else <i>null</i>.
+	 */
 	public static NPC getNearest(final int... ids) {
 		return getNearest(new Filter<NPC>() {
 			public boolean accept(final NPC npc) {
@@ -80,6 +94,31 @@ public class NPCs {
 		});
 	}
 
+	/**
+	 * @param names Npc will be accepted if having one of these names.
+	 * @return The nearest Npc with one of these names if any present, else <i>null</i>.
+	 */
+	public static NPC getNearest(final String... names) {
+		return getNearest(new Filter<NPC>() {
+			public boolean accept(final NPC npc) {
+				final String name = npc.getName();
+				if (name == null) {
+					return false;
+				}
+				for (final String n : names) {
+					if (n.toLowerCase().contains(name.toLowerCase())) {
+						return true;
+					}
+				}
+				return false;
+			}
+		});
+	}
+
+	/**
+	 * @param filter The filtering <code>Filter</code> NPCs have to pass.
+	 * @return The nearest Npc passing the filter if any present, else <i>null</i>.
+	 */
 	public static NPC getNearest(final Filter<NPC> filter) {
 		final Client client = Context.client();
 		final int[] indices = client.getRSNPCIndexArray();
@@ -87,9 +126,9 @@ public class NPCs {
 		double distance = Double.MAX_VALUE;
 		final RegionOffset position = Players.getLocal().getRegionOffset();
 		for (final int index : indices) {
-			final Node node = Nodes.lookup(client.getRSNPCNC(), index);
+			final Node node = Nodes.lookup((HashTable) client.getRSNPCNC(), index);
 			if (node != null && node instanceof RSNPCNode) {
-				final NPC t_npc = new NPC(((RSNPCHolder) ((RSNPCNodeHolder) ((RSNPCNode) node).getData()).getRSNPCNodeHolder()).getRSNPC());
+				final NPC t_npc = new NPC((RSNPC) ((RSNPCNode) node).getRSNPC());
 				if (filter.accept(t_npc)) {
 					final double dist = Calculations.distance(position, t_npc.getRegionOffset());
 					if (dist < distance) {

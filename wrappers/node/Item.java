@@ -5,16 +5,13 @@ import org.powerbot.game.api.util.node.Nodes;
 import org.powerbot.game.api.wrappers.Identifiable;
 import org.powerbot.game.api.wrappers.widget.WidgetChild;
 import org.powerbot.game.bot.Context;
-import org.powerbot.game.client.CacheTable;
-import org.powerbot.game.client.HardReferenceGet;
+import org.powerbot.game.client.Cache;
+import org.powerbot.game.client.HardReference;
+import org.powerbot.game.client.HashTable;
 import org.powerbot.game.client.Node;
 import org.powerbot.game.client.RSItem;
-import org.powerbot.game.client.RSItemDefLoaderCache;
-import org.powerbot.game.client.RSItemID;
-import org.powerbot.game.client.RSItemInts;
-import org.powerbot.game.client.RSItemStackSize;
-import org.powerbot.game.client.Reference;
-import org.powerbot.game.client.SoftReferenceGet;
+import org.powerbot.game.client.RSItemDefLoader;
+import org.powerbot.game.client.SoftReference;
 
 /**
  * Represents an item (with an id and stack size).
@@ -34,15 +31,14 @@ public class Item implements Identifiable {
 
 	public Item(final RSItem item) {
 		final Multipliers multipliers = Context.multipliers();
-		final Object data = item.getData();
-		id = ((RSItemID) ((RSItemInts) data).getRSItemInts()).getRSItemID() * multipliers.ITEM_ID;
-		stack = ((RSItemStackSize) ((RSItemInts) data).getRSItemInts()).getRSItemStackSize() * multipliers.ITEM_STACKSIZE;
+		id = item.getID() * multipliers.ITEM_ID;
+		stack = item.getStackSize() * multipliers.ITEM_STACKSIZE;
 	}
 
 	public Item(final WidgetChild widgetChild) {
 		id = widgetChild.getChildId();
 		stack = widgetChild.getChildStackSize();
-		this.widgetChild = widgetChild;
+		this.widgetChild = new WidgetChild_Item(widgetChild);
 	}
 
 	public int getId() {
@@ -66,19 +62,23 @@ public class Item implements Identifiable {
 	}
 
 	public ItemDefinition getDefinition() {
-		final Object itemDefLoaderTable = Context.client().getRSItemDefLoader();
-		final Object itemDefLoaderCache = ((RSItemDefLoaderCache) itemDefLoaderTable).getRSItemDefLoaderCache();
-		final Object itemDefLoader = ((CacheTable) itemDefLoaderCache).getCacheTable();
-		final Node ref = Nodes.lookup(itemDefLoader, id);
-		if (ref != null && ref instanceof Reference) {
-			final Object reference = ((Reference) ref).getData();
-			if (reference instanceof SoftReferenceGet) {
-				return new ItemDefinition(((SoftReferenceGet) reference).getSoftReferenceGet());
-			} else if (reference instanceof HardReferenceGet) {
-				return new ItemDefinition(((HardReferenceGet) reference).getHardReferenceGet());
+		try {
+			final Node ref = Nodes.lookup((HashTable) ((Cache) ((RSItemDefLoader) Context.client().getRSItemDefLoader()).getCache()).getTable(), id);
+			if (ref != null) {
+				if (ref instanceof HardReference) {
+					return new ItemDefinition((org.powerbot.game.client.RSItemDef) ((HardReference) ref).get());
+				} else if (ref instanceof SoftReference) {
+					final Object def = ((SoftReference) ref).get().get();
+
+					if (def != null) {
+						return new ItemDefinition((org.powerbot.game.client.RSItemDef) def);
+					}
+				}
 			}
+			return null;
+		} catch (final ClassCastException e) {
+			return null;
 		}
-		return null;
 	}
 
 	public WidgetChild getWidgetChild() {
@@ -94,5 +94,16 @@ public class Item implements Identifiable {
 			}
 		}
 		return false;
+	}
+
+	private final class WidgetChild_Item extends WidgetChild {
+		public WidgetChild_Item(final WidgetChild original) {
+			super(original.getWidget(), original.getParent(), original.getIndex());
+		}
+
+		@Override
+		public boolean validate() {
+			return super.validate() && widgetChild.getChildId() != -1;
+		}
 	}
 }

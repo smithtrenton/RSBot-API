@@ -20,12 +20,20 @@ public class Inventory {
 	public static final int WIDGET_SHOP = 621;
 	public static final int WIDGET_DUNGEONEERING_SHOP = 957;
 	public static final int WIDGET_BEAST_OF_BURDEN_STORAGE = 665;
+	public static final int WIDGET_STORE = 1266;
+	public static final int WIDGET_SAWMILL_CART = 771;
 
 	public static final int[] ALT_WIDGETS = {
 			WIDGET_BANK,
 			WIDGET_PRICE_CHECK, WIDGET_EQUIPMENT_BONUSES,
 			WIDGET_EXCHANGE, WIDGET_SHOP, WIDGET_DUNGEONEERING_SHOP,
-			WIDGET_BEAST_OF_BURDEN_STORAGE
+			WIDGET_BEAST_OF_BURDEN_STORAGE, WIDGET_STORE, WIDGET_SAWMILL_CART
+	};
+
+	public static final Filter<Item> ALL_FILTER = new Filter<Item>() {
+		public boolean accept(final Item item) {
+			return true;
+		}
 	};
 
 	public static Item getItem(final int... ids) {
@@ -41,11 +49,36 @@ public class Inventory {
 		return null;
 	}
 
+	public static Item getItem(final Filter<Item> filter) {
+		final Item[] items = getItems(false);
+		for (final Item item : items) {
+			if (filter.accept(item)) {
+				return item;
+			}
+		}
+		return null;
+	}
+
 	public static Item[] getItems() {
 		return getItems(false);
 	}
 
 	public static Item[] getItems(final boolean cached) {
+		return getItems(cached, ALL_FILTER);
+	}
+
+	public static Item[] getItems(final Filter<Item> itemFilter) {
+		return getItems(false, itemFilter);
+	}
+
+	/**
+	 * Returns the items matching a set filter.
+	 *
+	 * @param cached     If true opens the inventory tab, if false it uses the last seen representation of the items
+	 * @param itemFilter The filter to compare against
+	 * @return The items matching the filter
+	 */
+	public static Item[] getItems(final boolean cached, final Filter<Item> itemFilter) {
 		final WidgetChild inventoryWidget = getWidget(cached);
 		if (inventoryWidget != null) {
 			final WidgetChild[] inventoryChildren = inventoryWidget.getChildren();
@@ -53,7 +86,10 @@ public class Inventory {
 				final List<Item> items = new LinkedList<Item>();
 				for (int i = 0; i < 28; ++i) {
 					if (inventoryChildren[i].getChildId() != -1) {
-						items.add(new Item(inventoryChildren[i]));
+						final Item inventoryItem = new Item(inventoryChildren[i]);
+						if (itemFilter.accept(inventoryItem)) {
+							items.add(inventoryItem);
+						}
 					}
 				}
 				return items.toArray(new Item[items.size()]);
@@ -62,20 +98,42 @@ public class Inventory {
 		return new Item[0];
 	}
 
+	/**
+	 * Returns an array representing the state of the inventory.<br>
+	 * This function will always return an array of length 28.
+	 *
+	 * @param cached if true opens the inventory tab, if false it uses the last seen representation of the inventory.
+	 * @return an array representing the inventory.
+	 */
+	public static Item[] getAllItems(final boolean cached) {
+		final Item[] items = new Item[28];
+		final WidgetChild inventoryWidget = getWidget(cached);
+		if (inventoryWidget != null) {
+			final WidgetChild[] inventoryChildren = inventoryWidget.getChildren();
+			if (inventoryChildren.length >= items.length) {
+				for (int i = 0; i < items.length; i++) {
+					final WidgetChild wc = inventoryChildren[i];
+					items[i] = (wc == null || wc.getChildId() == -1) ? null : new Item(wc);
+				}
+			}
+		}
+		return items;
+	}
+
 	public static int getCount() {
 		return getItems().length;
 	}
 
-	public static int getCount(final int id) {
-		return getCount(false, new Filter<Item>() {
-			public boolean accept(final Item item) {
-				return item.getId() == id;
-			}
-		});
+	public static int getCount(final boolean countStack) {
+		return getCount(countStack, ALL_FILTER);
 	}
 
 	public static int getCount(final Filter<Item> itemFilter) {
 		return getCount(false, itemFilter);
+	}
+
+	public static int getCount(final int... ids) {
+		return getCount(false, ids);
 	}
 
 	public static int getCount(final boolean countStack, final int id) {
@@ -86,19 +144,56 @@ public class Inventory {
 		});
 	}
 
+	public static int getCount(final boolean countStacks, final int... ids) {
+		return getCount(countStacks, new Filter<Item>() {
+			public boolean accept(final Item item) {
+				for (final int ID : ids) {
+					if (item.getId() == ID) {
+						return true;
+					}
+				}
+				return false;
+			}
+		});
+	}
+
+	/**
+	 * Gets the count of a set of items
+	 *
+	 * @param countStack Should the method count item stacks?
+	 * @param itemFilter The filter to compare against
+	 * @return The amount of items matching the filter
+	 */
 	public static int getCount(final boolean countStack, final Filter<Item> itemFilter) {
 		final Item[] items = getItems();
 		int count = 0;
 		for (final Item item : items) {
 			if (item != null && itemFilter.accept(item)) {
-				if (countStack) {
-					count += item.getStackSize();
-				} else {
-					++count;
-				}
+				count += countStack ? item.getStackSize() : 1;
 			}
 		}
 		return count;
+	}
+
+	public static boolean contains(final int id) {
+		return getItem(id) != null;
+	}
+
+	public static boolean containsOneOf(final int... ids) {
+		return getCount(ids) > 0;
+	}
+
+	public static boolean containsAll(final int... ids) {
+		for (final int id : ids) {
+			if (getItem(id) == null) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean isFull() {
+		return getCount() == 28;
 	}
 
 	public static boolean selectItem(final int itemId) {
@@ -157,6 +252,42 @@ public class Inventory {
 		return -1;
 	}
 
+	/**
+	 * Returns the index of the first occurrence of an item in the inventory
+	 * matching with the provided id.
+	 *
+	 * @param id the item id
+	 * @return the index; otherwise <tt>-1</tt>.
+	 */
+	public static int indexOf(final int id) {
+		final Item[] items = getItems();
+		for (int i = 0; i < items.length; i++) {
+			if (id == items[i].getId()) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Returns the index of the first occurrence of an item in the inventory
+	 * matching with the provided name. Case-insensitive.
+	 *
+	 * @param name the name of the item
+	 * @return the index; otherwise <tt>-1</tt>.
+	 */
+	public static int indexOf(final String name) {
+		if (name != null && !name.isEmpty()) {
+			final Item[] items = getItems();
+			for (int i = 0; i < items.length; i++) {
+				if (items[i].getName().equalsIgnoreCase(name)) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
 	public static WidgetChild getWidget(final boolean cached) {
 		for (final int widget : ALT_WIDGETS) {
 			WidgetChild inventory = Widgets.get(widget, 0);
@@ -165,7 +296,7 @@ public class Inventory {
 			}
 		}
 		if (!cached) {
-			Tabs.INVENTORY.open(true);
+			Tabs.INVENTORY.open(false);
 		}
 		return Widgets.get(WIDGET, 0);
 	}

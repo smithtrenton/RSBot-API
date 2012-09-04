@@ -232,7 +232,7 @@ public abstract class CapturedModel implements Entity {
 		}
 	}
 
-	private int[][] projectVertices() {
+	public int[][] projectVertices() {
 		final Context context = Context.get();
 		final Calculations.Toolkit toolkit = context.getToolkit();
 		final Calculations.Viewport viewport = context.getViewport();
@@ -263,6 +263,22 @@ public abstract class CapturedModel implements Entity {
 			}
 		}
 		return screen;
+	}
+
+	public int getNumFaces() {
+		return numFaces;
+	}
+
+	public short[] getIndices1() {
+		return indices1;
+	}
+
+	public short[] getIndices2() {
+		return indices2;
+	}
+
+	public short[] getIndices3() {
+		return indices3;
 	}
 
 	@Override

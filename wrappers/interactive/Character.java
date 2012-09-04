@@ -7,9 +7,12 @@ import java.awt.Polygon;
 import org.powerbot.game.api.methods.Calculations;
 import org.powerbot.game.api.methods.Game;
 import org.powerbot.game.api.methods.input.Mouse;
+import org.powerbot.game.api.methods.interactive.NPCs;
+import org.powerbot.game.api.methods.interactive.Players;
 import org.powerbot.game.api.methods.node.Menu;
 import org.powerbot.game.api.util.Filter;
 import org.powerbot.game.api.util.internal.Multipliers;
+import org.powerbot.game.api.util.node.LinkedList;
 import org.powerbot.game.api.util.node.Nodes;
 import org.powerbot.game.api.wrappers.Entity;
 import org.powerbot.game.api.wrappers.Identifiable;
@@ -21,30 +24,19 @@ import org.powerbot.game.api.wrappers.graphics.CapturedModel;
 import org.powerbot.game.api.wrappers.graphics.model.CharacterModel;
 import org.powerbot.game.bot.Context;
 import org.powerbot.game.client.Client;
+import org.powerbot.game.client.CombatStatus;
+import org.powerbot.game.client.CombatStatusData;
+import org.powerbot.game.client.HashTable;
 import org.powerbot.game.client.Model;
-import org.powerbot.game.client.ModelCapture;
-import org.powerbot.game.client.RSAnimatorSequence;
-import org.powerbot.game.client.RSCharacterAnimation;
-import org.powerbot.game.client.RSCharacterHPRatio;
-import org.powerbot.game.client.RSCharacterHeight;
-import org.powerbot.game.client.RSCharacterInteracting;
-import org.powerbot.game.client.RSCharacterIsMoving;
-import org.powerbot.game.client.RSCharacterLoopCycleStatus;
-import org.powerbot.game.client.RSCharacterMessageData;
-import org.powerbot.game.client.RSCharacterOrientation;
-import org.powerbot.game.client.RSCharacterPassiveAnimation;
-import org.powerbot.game.client.RSInteractableBytes;
-import org.powerbot.game.client.RSInteractableInts;
-import org.powerbot.game.client.RSInteractableLocation;
-import org.powerbot.game.client.RSInteractableManager;
-import org.powerbot.game.client.RSInteractablePlane;
-import org.powerbot.game.client.RSInteractableRSInteractableManager;
-import org.powerbot.game.client.RSMessageDataMessage;
-import org.powerbot.game.client.RSNPCHolder;
+import org.powerbot.game.client.RSAnimator;
+import org.powerbot.game.client.RSCharacter;
+import org.powerbot.game.client.RSInteractable;
+import org.powerbot.game.client.RSInteractableData;
+import org.powerbot.game.client.RSMessageData;
+import org.powerbot.game.client.RSNPC;
 import org.powerbot.game.client.RSNPCNode;
-import org.powerbot.game.client.RSNPCNodeHolder;
-import org.powerbot.game.client.SequenceID;
-import org.powerbot.game.client.SequenceInts;
+import org.powerbot.game.client.RSPlayer;
+import org.powerbot.game.client.Sequence;
 
 /**
  * @author Timer
@@ -63,8 +55,9 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 	public abstract String getName();
 
 	public RegionOffset getRegionOffset() {
-		final RSInteractableLocation location = ((RSInteractableManager) ((RSInteractableRSInteractableManager) get()).getRSInteractableRSInteractableManager()).getData().getLocation();
-		return new RegionOffset((int) location.getX() >> 9, (int) location.getY() >> 9, getPlane());
+		final RSInteractable location = get();
+		final RSInteractableData data = (RSInteractableData) location.getData();
+		return new RegionOffset((int) data.getLocation().getX() >> 9, (int) data.getLocation().getY() >> 9, getPlane());
 	}
 
 	public Tile getLocation() {
@@ -73,64 +66,137 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 	}
 
 	public int getPlane() {
-		return ((RSInteractablePlane) ((RSInteractableBytes) get()).getRSInteractableBytes()).getRSInteractablePlane();
+		return get().getPlane();
 	}
 
 	public Character getInteracting() {
-		final int index = ((RSCharacterInteracting) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterInteracting() * multipliers.CHARACTER_INTERACTING;
+		final int index = get().getInteracting() * multipliers.CHARACTER_INTERACTING;
 		if (index == -1) {
 			return null;
 		}
 		if (index < 0x8000) {
-			return new NPC(((RSNPCHolder) ((RSNPCNodeHolder) ((RSNPCNode) Nodes.lookup(client.getRSNPCNC(), index)).getData()).getRSNPCNodeHolder()).getRSNPC());
+			final Object npcNode = Nodes.lookup((HashTable) client.getRSNPCNC(), index);
+			if (npcNode == null) {
+				return null;
+			}
+			return new NPC((RSNPC) ((RSNPCNode) npcNode).getRSNPC());
 		} else {
-			return new Player(client.getRSPlayerArray()[index - 0x8000]);
+			return new Player((RSPlayer) client.getRSPlayerArray()[index - 0x8000]);
 		}
 	}
 
 	public int getAnimation() {
-		final Object animation = ((RSCharacterAnimation) get()).getRSCharacterAnimation();
+		final RSAnimator animation = (RSAnimator) get().getAnimation();
 		if (animation != null) {
-			final Object sequence = ((RSAnimatorSequence) animation).getRSAnimatorSequence();
+			final Sequence sequence = (Sequence) animation.getSequence();
 			if (sequence != null) {
-				return ((SequenceID) ((SequenceInts) sequence).getSequenceInts()).getSequenceID() * multipliers.SEQUENCE_ID;
+				return sequence.getID() * multipliers.SEQUENCE_ID;
 			}
 		}
 		return -1;
 	}
 
 	public int getPassiveAnimation() {
-		final Object animation = ((RSCharacterPassiveAnimation) get()).getRSCharacterPassiveAnimation();
-		if (animation != null) {
-			final Object sequence = ((RSAnimatorSequence) animation).getRSAnimatorSequence();
-			if (sequence != null) {
-				return ((SequenceID) ((SequenceInts) sequence).getSequenceInts()).getSequenceID() * multipliers.SEQUENCE_ID;
+		try {
+			final RSAnimator animation = (RSAnimator) get().getPassiveAnimation();
+			if (animation != null) {
+				final Sequence sequence = (Sequence) animation.getSequence();
+				if (sequence != null) {
+					return sequence.getID() * multipliers.SEQUENCE_ID;
+				}
 			}
+		} catch (final AbstractMethodError ignored) {
+		} catch (final ClassCastException ignored) {
 		}
 		return -1;
 	}
 
 	public int getHeight() {
-		return ((RSCharacterHeight) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterHeight() * multipliers.CHARACTER_HEIGHT;
+		return get().getHeight() * multipliers.CHARACTER_HEIGHT;
 	}
 
 	public int getRotation() {
-		return ((RSCharacterOrientation) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterOrientation() * multipliers.CHARACTER_ORIENTATION;
+		return get().getOrientation() * multipliers.CHARACTER_ORIENTATION;
 	}
 
 	public int getOrientation() {
-		return (180 + getRotation() * 45 / 2048) % 360;
+		return (630 - getRotation() * 45 / 0x800) % 360;
+	}
+
+	private CombatStatusData getCombatInfoData() {
+		final RSCharacter accessor = get();
+		if (accessor == null) {
+			return null;
+		}
+
+		final int global_loopCycle = client.getLoopCycle() * multipliers.GLOBAL_LOOPCYCLE;
+
+		final Object combatStatusList = accessor.getCombatStatusList();
+		if (combatStatusList == null) {
+			return null;
+		}
+
+		final LinkedList<Object> linkedCombatStatus = new LinkedList<Object>((org.powerbot.game.client.LinkedList) combatStatusList);
+		for (Object combatStatus = linkedCombatStatus.getHead(); combatStatus != null; combatStatus = linkedCombatStatus.getNext()) {
+			final Object dataList = ((CombatStatus) combatStatus).getData();
+			if (dataList == null) {
+				continue;
+			}
+
+			final LinkedList<Object> linkedDataList = new LinkedList<Object>((org.powerbot.game.client.LinkedList) dataList);
+			final Object headData = linkedDataList.getHead();
+			if (headData == null || ((CombatStatusData) headData).getLoopCycleStatus() * multipliers.CHARACTER_LOOPCYCLESTATUS > global_loopCycle) {
+				continue;
+			}
+
+			return (CombatStatusData) headData;
+		}
+
+		return null;
+	}
+
+	public int getHpPercent() {
+		final RSCharacter c = get();
+		if (c != null) {
+			final CombatStatusData combatInfoData = getCombatInfoData();
+			if (combatInfoData == null) {
+				return 100;
+			}
+
+			return (int) Math.ceil(combatInfoData.getHPRatio() * multipliers.CHARACTER_HPRATIO * 100 / 255);
+		}
+
+		return -1;
+	}
+
+	public int getHpRatio() {
+		final RSCharacter c = get();
+		if (c != null) {
+			final CombatStatusData combatInfoData = getCombatInfoData();
+			if (combatInfoData == null) {
+				return 255;
+			}
+
+			return combatInfoData.getHPRatio() * multipliers.CHARACTER_HPRATIO;
+		}
+
+		return -1;
 	}
 
 	public boolean isInCombat() {
-		return Game.isLoggedIn() && Game.getLoopCycle() < ((RSCharacterLoopCycleStatus) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterLoopCycleStatus() * multipliers.CHARACTER_LOOPCYCLESTATUS;
+		final RSCharacter c = get();
+		return c != null && getCombatInfoData() != null;
+	}
+
+	public boolean isIdle() {
+		return !isMoving() && !isInCombat() && getAnimation() == -1 && getInteracting() == null;
 	}
 
 	public String getMessage() {
 		try {
-			final Object message_data = ((RSCharacterMessageData) get()).getRSCharacterMessageData();
+			final RSMessageData message_data = (RSMessageData) get().getMessageData();
 			if (message_data != null) {
-				return (String) ((RSMessageDataMessage) message_data).getRSMessageDataMessage();
+				return (String) message_data.getMessage();
 			}
 		} catch (final AbstractMethodError ignored) {
 		} catch (final ClassCastException ignored) {
@@ -138,13 +204,8 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 		return null;
 	}
 
-	public int getHpPercent() {
-		final int ratio = ((RSCharacterHPRatio) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterHPRatio() * multipliers.CHARACTER_HPRATIO;
-		return (int) Math.ceil(isInCombat() ? (ratio * 100) / 0xff : 100);
-	}
-
 	public int getSpeed() {
-		return ((RSCharacterIsMoving) ((RSInteractableInts) get()).getRSInteractableInts()).getRSCharacterIsMoving() * multipliers.CHARACTER_ISMOVING;
+		return get().isMoving() * multipliers.CHARACTER_ISMOVING;
 	}
 
 	public boolean isMoving() {
@@ -152,9 +213,9 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 	}
 
 	public CapturedModel getModel() {
-		final Object ref = get();
+		final RSCharacter ref = get();
 		if (ref != null) {
-			final Model model = ModelCapture.modelCache.get(ref);
+			final Model model = ref.getModel();
 			if (model != null) {
 				return new CharacterModel(model, this);
 			}
@@ -162,10 +223,29 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 		return null;
 	}
 
-	public abstract Object get();
+	public abstract RSCharacter get();
 
 	public boolean validate() {
-		return get() != null;
+		final RSCharacter this_ref;
+		if ((this_ref = get()) != null) {
+			if (this instanceof Player) {
+				return Players.getNearest(new Filter<Player>() {
+					@Override
+					public boolean accept(final Player character) {
+						return character.get() == this_ref;
+					}
+				}) != null;
+			} else if (this instanceof NPC) {
+				return NPCs.getNearest(new Filter<NPC>() {
+					@Override
+					public boolean accept(final NPC character) {
+						return character.get() == this_ref;
+					}
+				}) != null;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public Point getCentralPoint() {
@@ -173,8 +253,9 @@ public abstract class Character implements Entity, Locatable, Rotatable, Identif
 		if (model != null) {
 			return model.getCentralPoint();
 		}
-		final RSInteractableLocation location = ((RSInteractableManager) ((RSInteractableRSInteractableManager) get()).getRSInteractableRSInteractableManager()).getData().getLocation();
-		return Calculations.groundToScreen((int) location.getX(), (int) location.getY(), Game.getPlane(), -getHeight() / 2);
+		final RSCharacter character = get();
+		final RSInteractableData data = (RSInteractableData) character.getData();
+		return Calculations.groundToScreen((int) data.getLocation().getX(), (int) data.getLocation().getY(), character.getPlane(), -getHeight() / 2);
 	}
 
 	public Point getNextViewportPoint() {
